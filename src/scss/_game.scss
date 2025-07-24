@@ -1,0 +1,131 @@
+@use "_global" as *;
+
+#game {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1em;
+
+    .game-wrapper {
+        display: flex;
+        width: 50em;
+        max-width: 99vw;
+        align-items: center;
+
+        > div {
+            min-width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+
+    .cover {
+        flex-direction: column;
+        border: 1px solid;
+        height: fit-content !important;
+        padding: 2em .5em;
+
+        img {
+            width: 75%;
+        }
+
+        > div {
+            display: inline-block;
+            word-break: break-all;
+            text-align: center;
+        }
+        .artist, .album {
+            transition: height 1s ease-in-out;
+        }
+        .artist {
+            padding-top: .5em;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .album {
+            font-size: 1.5em;
+        }
+        .popularity {
+            margin-top: .5em;
+            width: 65%;
+
+            .popularity-bar {
+                position: relative;
+                margin-top: .1em;
+                width: 100%;
+                height: 1em;
+                background-color: darken($bgcolor, 10%);
+                display: inline-block;
+
+                #popularity-fill {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    height: 1em;
+                    background-color: #74a36b;
+                    z-index: 2;
+                }
+            }
+        }
+    }
+
+    .guess-wrapper {
+        width: 75%;
+        position: relative;
+    }
+    .guess {
+        display: flex;
+        flex-direction: column;
+        gap: .5em;
+
+        .guesses {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: .5em;
+
+            input {
+                background-color: darken($bgcolor, 10%);
+                border: none;
+                padding: .5em .75em;
+                font-size: 1.5em;
+                width: calc(100% - 1.5em);
+
+                &:focus {
+                    outline: none;
+                }
+            }
+
+        }
+
+        .correct-genres {
+            position: absolute;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: .5em;
+            width: 100%;
+            white-space: nowrap;
+            @extend .no-select;
+
+            > div {
+                background-color: darken($bgcolor, 20%);
+                padding: .5em .75em;
+                font-size: 1.5em;
+                width: calc(100% - 1.5em);
+                overflow: hidden;
+            }
+        }
+    }
+
+    #guess-btn {
+        font-size: 1.25em;
+        font-weight: bold;
+    }
+}

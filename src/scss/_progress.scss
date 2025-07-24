@@ -1,0 +1,31 @@
+@use "_global" as *;
+
+.progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 1.5em;
+    z-index: 100;
+    background-color: darken($bgcolor, 10%);
+
+    .fill-bar {
+        position: fixed;
+        z-index: 101;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 1.5em;
+        background-color: darken($bgcolor, 25%);
+        transition: 1s width ease-in-out;
+    }
+
+    .score {
+        position: absolute;
+        top: 125%;
+        left: .5em;
+        #score {
+            display: inline;
+        }
+    }
+}

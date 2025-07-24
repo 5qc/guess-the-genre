@@ -1,0 +1,1390 @@
+const ls = {
+    "genre_no": "acg___NUMBER-OF-GENRES",
+    "max_rounds": "acg___MAXIMUM-ROUNDS",
+    "popularity": "acg___ALBUM-POPULARITY",
+    "pop_min": "acg___ALBUM-POPULARITY-MINIMUM",
+    "pop_max": "acg___ALBUM-POPULARITY-MAXIMUM",
+    "hide_info": "acg___HIDE-ALBUM-INFORMATION",
+    "allow_explicit": "acg___SHOW-EXPLICIT-COVERS"
+};
+function typo(str, list, return_str = false) {
+    let result = 0;
+    let string;
+    for (let x of list) {
+        if (similarity(str, x) > result) {
+            result = similarity(str, x);
+            string = x;
+        }
+    }
+    if (return_str)
+        return string;
+    else
+        return result;
+}
+function similarity(s1, s2) {
+    function editDistance(s1, s2) {
+        s1 = s1.toLowerCase();
+        s2 = s2.toLowerCase();
+        const costs = new Array();
+        for (let i = 0; i <= s1.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= s2.length; j++) {
+                if (i == 0)
+                    costs[j] = j;
+                else {
+                    if (j > 0) {
+                        let newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+            }
+            if (i > 0)
+                costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+    let longer = s1;
+    let shorter = s2;
+    if (s1.length < s2.length) {
+        longer = s2;
+        shorter = s1;
+    }
+    const longerLength = longer.length;
+    if (longerLength === 0)
+        return 1;
+    return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+}
+const data = [
+    { "artist": "Sadness / abriction", "album": "That Lasts Forever", "cover": "https://e.snmc.io/i/600/w/736f06372bc29f45153c9aa649428b60/13533719", "ratings": 222, "genres": ["shoegaze", "emo"], "explicit": false },
+    { "artist": "Deafheaven", "album": "Sunbather", "cover": "https://e.snmc.io/i/600/w/da7c11c3029958c0afbe751c314cdfea/4863989", "ratings": 28712, "genres": ["blackgaze", "post-metal"], "explicit": false },
+    { "artist": "Chuquimamani-Condori", "album": "Edits", "cover": "https://e.snmc.io/i/600/w/9f0fb6e8983f57c714f9fa1b08dc2a9b/13568509", "ratings": 130, "genres": ["mashup", "latin electronic", "epic collage"], "explicit": false },
+    { "artist": "Life", "album": "Demo Nine", "cover": "https://e.snmc.io/i/600/w/108872a987c557bae14ef6ffe62af282/13549311", "ratings": 212, "genres": ["screamo"], "explicit": false },
+    { "artist": "OZON671", "album": "Тихий Ден. Полная версия Tihiy Dan. Polnaya versiya", "cover": "https://e.snmc.io/i/600/w/c3573384a6265b60c5facb5486caaf56/13115962", "ratings": 12, "genres": ["spoken word"], "explicit": false },
+    { "artist": "Cerounno & Vinyltracker", "album": "De camino al palacio", "cover": "https://e.snmc.io/i/600/w/356f26206609622a12757a856d62be34/12538514", "ratings": 201, "genres": ["drumless"], "explicit": false },
+    { "artist": "Vanessa Rossetto", "album": "Pictures of the Warm South", "cover": "https://e.snmc.io/i/600/w/241f4b565847c9ae5cc71a3de6001887/12928415", "ratings": 142, "genres": ["sound collage", "field recordings"], "explicit": false },
+    { "artist": "Quatuor Molinari", "album": "Intégrale des quatuors à cordes; Trio à cordes", "cover": "https://e.snmc.io/i/600/w/59d55bd61befa66a371a5733d8bef769/12154934", "ratings": 138, "genres": ["modern classical", "chamber music"], "explicit": false },
+    { "artist": "KIDNAMEDFINGER", "album": "KIDNAMEDFINGER", "cover": "https://e.snmc.io/i/600/w/6ed1a6f447cbad4dea2d41700194c7fd/13479629/kidnamedfinger-kidnamedfinger-Cover-Art.jpg", "ratings": 67, "genres": ["hardcore [edm]"], "explicit": false },
+    { "artist": "Deafheaven", "album": "Lonely People With Power", "cover": "https://e.snmc.io/i/600/w/1ea57826218f8c7df96d0805961e9ba6/12977744", "ratings": 13860, "genres": ["blackgaze", "post-metal"], "explicit": false },
+    { "artist": "Fugazi", "album": "Repeater", "cover": "https://e.snmc.io/i/600/w/9b436579e65d31d244dc913eb91302a5/2097462", "ratings": 21572, "genres": ["post-hardcore"], "explicit": false },
+    { "artist": "Tim Hecker", "album": "Virgins", "cover": "https://e.snmc.io/i/600/w/4cd86203d620c4c5e110e2167b16d943/5149594", "ratings": 15688, "genres": ["ambient", "electroacoustic", "drone"], "explicit": false },
+    { "artist": "Aaron Dilloway", "album": "Modern Jester", "cover": "https://e.snmc.io/i/600/w/a2a144492c399fe453602e319eaf5df6/4039627", "ratings": 1677, "genres": ["noise", "tape music"], "explicit": false },
+    { "artist": "MF DOOM", "album": "Operation: Doomsday", "cover": "https://e.snmc.io/i/600/w/00a6edc7e685c8ec0972e1a5ff70806a/1259326", "ratings": 26800, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Godspeed You! Black Emperor", "album": "&quot;No Title as of 13 February 2024 28,340 Dead&quot;", "cover": "https://e.snmc.io/i/600/w/95810a31b21a3d17a60375f741b34f8c/12454310", "ratings": 14466, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Magdalena Bay", "album": "Imaginal Disk", "cover": "https://e.snmc.io/i/600/w/ab9a537d52c29e69bba3e339bab69632/12301754", "ratings": 35849, "genres": ["neo-psychedelia", "synthpop"], "explicit": false },
+    { "artist": "Exuma", "album": "Exuma", "cover": "https://e.snmc.io/i/600/w/cd70de5a4087fc4b81933939e02dfa87/6147820", "ratings": 12719, "genres": ["psychedelic folk", "caribbean folk music"], "explicit": false },
+    { "artist": "Quadeca", "album": "Bad Internet Rapper", "cover": "https://e.snmc.io/i/600/w/85fc915d8c33ed54c80bec3ae853bdb1/6942149", "ratings": 126, "genres": ["trap", "pop rap", "cloud rap"], "explicit": false },
+    { "artist": "Quadeca", "album": "Out of Order", "cover": "https://e.snmc.io/i/600/w/13e1a41cc6590826cba0af5a3bed2be0/6950944", "ratings": 140, "genres": ["trap"], "explicit": false },
+    { "artist": "Quadeca", "album": "Voice Memos", "cover": "https://e.snmc.io/i/600/w/4263477cb2b0aa8259bcf6704fd0adfb/7441787", "ratings": 824, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Quadeca", "album": "From Me to You", "cover": "https://e.snmc.io/i/600/w/9eaa6f076e22b496bf84fdda192f6f6b/8884643", "ratings": 2582, "genres": ["experimental hip hop", "emo rap", "electronic"], "explicit": false },
+    { "artist": "Quadeca", "album": "I Didn't Mean to Haunt You", "cover": "https://e.snmc.io/i/600/w/5f452216a49b39a169734e318c897847/10418490", "ratings": 10459, "genres": ["art pop", "folktronica"], "explicit": false },
+    { "artist": "Quadeca", "album": "Work in Progress", "cover": "https://e.snmc.io/i/600/w/ca02a866f3255a4add6b48b3f462df51/8903706", "ratings": 94, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Quadeca", "album": "Nostalgia for the Now", "cover": "https://e.snmc.io/i/600/w/2b2461af6405f53ff67910d8cb214cf4/6942167", "ratings": 114, "genres": ["trap"], "explicit": false },
+    { "artist": "Quadeca", "album": "1DAY", "cover": "https://e.snmc.io/i/600/w/b07efd7d23d8fc0ab739217f855c79c3/9084887", "ratings": 62, "genres": ["trap"], "explicit": false },
+    { "artist": "Quadeca", "album": "Scrapyard", "cover": "https://e.snmc.io/i/600/w/33d6017c65297d1b216f97cfa31f5ea4/11813041", "ratings": 8252, "genres": ["art pop", "experimental hip hop", "electronic"], "explicit": false },
+    { "artist": "Shanks and the Dreamers", "album": "A Day Late: Instrumentals for Illegal Aliens", "cover": "https://e.snmc.io/i/600/w/bfddd5f04e8968ed153193c7ed6b5280/3400585", "ratings": 4, "genres": ["post-rock"], "explicit": false },
+    { "artist": "The Skaters", "album": "Wind Drapeing Incense", "cover": "https://e.snmc.io/i/600/w/e57eb2d903c878b6cd58d34ac468324f/6419989", "ratings": 58, "genres": ["drone", "ritual ambient"], "explicit": false },
+    { "artist": "Asleep Country", "album": "LUX", "cover": "https://e.snmc.io/i/600/w/2d6b02a78a79afa4305093c5954266fa/12232909", "ratings": 424, "genres": ["experimental", "electronic", "post-industrial"], "explicit": false },
+    { "artist": "1000 Eyes", "album": "Signalis: Memories (Side A)", "cover": "https://e.snmc.io/i/600/w/fc59c6a8196348d607c74769d9275c92/12680023", "ratings": 110, "genres": ["ambient", "electronic"], "explicit": false },
+    { "artist": "Jamie Paige", "album": "Constant Companions", "cover": "https://e.snmc.io/i/600/w/a242c46f984c0d88782fe093bd605665/12577781", "ratings": 570, "genres": ["electropop", "indietronica"], "explicit": false },
+    { "artist": "Ed Maverick", "album": "La nube en el jardín", "cover": "https://e.snmc.io/i/600/w/cb1e334b5562fc6634c2e31c3ac10998/12696305", "ratings": 414, "genres": ["singer-songwriter", "contemporary folk"], "explicit": false },
+    { "artist": "Mir Nicolás", "album": "SP.I Deluxe Edition", "cover": "https://e.snmc.io/i/600/w/208c7dc442f05b521fb294bd5ee4195b/12638350", "ratings": 357, "genres": ["drumless", "abstract hip hop"], "explicit": false },
+    { "artist": "Varoner", "album": "Fiebre de Oro: Aurum", "cover": "https://e.snmc.io/i/600/w/4ce65d0dad3d04fa0c7f49a004f2b0ef/12400309", "ratings": 135, "genres": ["boom bap", "drumless"], "explicit": false },
+    { "artist": "Nächtlich", "album": "Exaltation of Evil", "cover": "https://e.snmc.io/i/600/w/13d608c515d10ede60dbcd27ca67fe95/12104177", "ratings": 268, "genres": ["black metal"], "explicit": false },
+    { "artist": "Various Artists", "album": "DAEMON/DOLL", "cover": "https://e.snmc.io/i/600/w/d9e2bfc891c241a8e6a91ecaeaf107c6/12034964", "ratings": 68, "genres": ["art pop", "dance-pop"], "explicit": false },
+    { "artist": "Camila Bañados", "album": "Viento 1.", "cover": "https://e.snmc.io/i/600/w/4e5b97a49965c1e83dea3f5312340309/12229729", "ratings": 488, "genres": ["chamber jazz", "progressive folk"], "explicit": false },
+    { "artist": "tdstr", "album": "Phase 9: Juxtapositional Music", "cover": "https://e.snmc.io/i/600/w/ae7193e205b309f363f23cfddc245341/12635428", "ratings": 135, "genres": ["hardtek", "mashup"], "explicit": false },
+    { "artist": "lulamoon", "album": "Opal", "cover": "https://e.snmc.io/i/600/w/c27af96c74c916fbe6935e2beba29534/12269741", "ratings": 95, "genres": ["boom bap", "hardcore hip hop"], "explicit": false },
+    { "artist": "Auld Ridge", "album": "For Death and Glory, to the Gods I Cry", "cover": "https://e.snmc.io/i/600/w/c60c576104087ece07a62f9d1f54aa7e/12639122", "ratings": 305, "genres": ["melodic black metal", "pagan black metal"], "explicit": false },
+    { "artist": "Jaloner", "album": "Pangea: La Grieta", "cover": "https://e.snmc.io/i/600/w/066a2c8ee0b3930e66af6aeb712e7be8/12819391", "ratings": 108, "genres": ["jazz rap", "boom bap"], "explicit": false },
+    { "artist": "CT57", "album": "Road to Nowhere", "cover": "https://e.snmc.io/i/600/w/b4b1dc045e9829c6c6104b23a7c24098/12381323", "ratings": 94, "genres": ["ambient", "broken transmission", "field recordings"], "explicit": false },
+    { "artist": "Present", "album": "This Is NOT the End", "cover": "https://e.snmc.io/i/600/w/690d0b4a605e1beab98f6fa0a52f6edb/11966556", "ratings": 207, "genres": ["brutal prog", "avant-prog"], "explicit": false },
+    { "artist": "Thalin", "album": "Maria Esmeralda", "cover": "https://e.snmc.io/i/600/w/f3d5fb360f78e3efc763b2e285f91e17/12299019", "ratings": 236, "genres": ["abstract hip hop", "experimental hip hop"], "explicit": false },
+    { "artist": "Joey Duran", "album": "Feet Always Cold", "cover": "https://e.snmc.io/i/600/w/1a316b2308611ad4d89e4cbe1516d2b4/12225294", "ratings": 517, "genres": ["post-rock", "experimental rock"], "explicit": false },
+    { "artist": "ilysm", "album": "Making Money in Weird Ways", "cover": "https://e.snmc.io/i/600/w/3cec2bcfeae41184b7803a00fb0b71c6/12740753", "ratings": 109, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Niomi", "album": "Chichi", "cover": "https://e.snmc.io/i/600/w/a2e337eda030ad776bf23da21ff7f065/12871526", "ratings": 190, "genres": ["indietronica", "noise pop", "art pop"], "explicit": false },
+    { "artist": "Diabarha", "album": "Ilda Owns Two Masters", "cover": "https://e.snmc.io/i/600/w/d26d33579b3418e71c350f8146ada07a/12712611", "ratings": 61, "genres": ["extratone", "splittercore", "speedcore"], "explicit": false },
+    { "artist": "Arbor", "album": "Eventide Primitivism", "cover": "https://e.snmc.io/i/600/w/cb2975c92fe6312129083e49c49b7416/12467531", "ratings": 247, "genres": ["black metal"], "explicit": false },
+    { "artist": "Elucid", "album": "Interference Pattern", "cover": "https://e.snmc.io/i/600/w/a83744c797f348eb40b1f6e7cae18714/12890700", "ratings": 401, "genres": ["experimental hip hop", "sound collage", "ambient"], "explicit": false },
+    { "artist": "Rita Payés", "album": "De camino al camino", "cover": "https://e.snmc.io/i/600/w/940dc6a234060c74e8c4848ae563eadf/12308193", "ratings": 410, "genres": ["chamber folk", "progressive folk"], "explicit": false },
+    { "artist": "Gauntlet Ring", "album": "Phantoms of Dark Symmetry", "cover": "https://e.snmc.io/i/600/w/6a4836bb1eaa805d377cb6660146c07d/12666289", "ratings": 341, "genres": ["black metal"], "explicit": false },
+    { "artist": "Polus", "album": "Bajo La Influencia", "cover": "https://e.snmc.io/i/600/w/c12b0918e8212f29174106ecbaf0555b/12499047", "ratings": 198, "genres": ["cloud rap", "hardcore hip hop"], "explicit": false },
+    { "artist": "Kamau", "album": "Est...", "cover": "https://e.snmc.io/i/600/w/51b0051d9a99bf4ee2f45463082541b4/12612600", "ratings": 66, "genres": ["conscious hip hop"], "explicit": false },
+    { "artist": "Katy da Voz e as Abusadas", "album": "Ainda mais atormentadas y remixadas", "cover": "https://e.snmc.io/i/600/w/cedd316757ba0f6c7c8d654bbddc4788/12663809", "ratings": 77, "genres": ["electronic dance music", "funk mandelão"], "explicit": false },
+    { "artist": "Twine", "album": "New Old Horse", "cover": "https://e.snmc.io/i/600/w/478f37b27ecc247bbbc49a461fd8af53/12782824", "ratings": 499, "genres": ["indie rock", "noise rock"], "explicit": false },
+    { "artist": "Tanger", "album": "Prefer Not to Say", "cover": "https://e.snmc.io/i/600/w/ab4869138f1498d7fba99644a7da0065/12687362", "ratings": 80, "genres": ["electronic dance music"], "explicit": false },
+    { "artist": "Lex Walton", "album": "SHAME MUSIC 2", "cover": "https://e.snmc.io/i/600/w/33f629600420ddc062da8652e3491f52/12321877", "ratings": 75, "genres": ["noise pop", "slacker rock"], "explicit": false },
+    { "artist": "Nussy Andrews", "album": "Venus, Baby", "cover": "https://e.snmc.io/i/600/w/67b723bdb5dbf9c29910d1337619bfd5/12536879", "ratings": 29, "genres": ["art pop", "singer-songwriter", "piano rock"], "explicit": false },
+    { "artist": "Normal Pleasure", "album": "MELBOURNE'S DEAD!!", "cover": "https://e.snmc.io/i/600/w/44c2fc2e8ecf9e5f4f6e2a8bda01e002/12852958", "ratings": 55, "genres": ["house", "wonky techno"], "explicit": false },
+    { "artist": "Various Artists", "album": "TRANSA", "cover": "https://e.snmc.io/i/600/w/c0da988fac6fc690a52ab837b0dc8340/12480546", "ratings": 467, "genres": ["singer-songwriter", "ambient"], "explicit": false },
+    { "artist": "Solenoide", "album": "Solenoide", "cover": "https://e.snmc.io/i/600/w/082f6338c781383cd048d94a4408a01c/12676184", "ratings": 39, "genres": ["shoegaze", "dream pop"], "explicit": false },
+    { "artist": "Various Artists", "album": "Our Friend's House... Vol. 2 <3", "cover": "https://e.snmc.io/i/600/w/74a2a0eaf2fef4c22112638e15ece0eb/12188117", "ratings": 35, "genres": ["indie rock", "indie pop", "indietronica"], "explicit": false },
+    { "artist": "Bronko Yotte", "album": "PROFE", "cover": "https://e.snmc.io/i/600/w/4980aac1cde6f00e7308c8929f406622/12815748", "ratings": 37, "genres": ["pop rap"], "explicit": false },
+    { "artist": "So Long... Partner", "album": "All Cats Hate Closed Doors", "cover": "https://e.snmc.io/i/600/w/e9ff201eb030c14f9e865ab7f8ca2cde/12919464", "ratings": 111, "genres": ["indie folk", "folk punk", "emo"], "explicit": false },
+    { "artist": "Lobsterfight", "album": "My Coat Hanger Is a Necklace", "cover": "https://e.snmc.io/i/600/w/1ff10050cd08b6d39a47ffdc0e66cfca/13107909", "ratings": 265, "genres": ["midwest emo", "neo-psychedelia", "art rock", "slacker rock"], "explicit": false },
+    { "artist": "Sesame", "album": "I Will Turn, I Will, I Will", "cover": "https://e.snmc.io/i/600/w/05add778127644bb904381fa6784237f/12309583", "ratings": 314, "genres": ["screamo", "post-rock", "slowcore"], "explicit": false },
+    { "artist": "Fellsius", "album": "Blue", "cover": "https://e.snmc.io/i/600/w/b8fcf1240939d86c13e91cfe007ccb71/12639756", "ratings": 94, "genres": ["wonky", "uk bass"], "explicit": false },
+    { "artist": "Harry Gorski-Brown", "album": "Durt Dronemaker After Dreamboats", "cover": "https://e.snmc.io/i/600/w/6d17878879e678c8fa2ee7715f5d131e/11789065", "ratings": 412, "genres": ["avant-folk", "òrain ghàidhlig"], "explicit": false },
+    { "artist": "Invunche", "album": "Atavismo", "cover": "https://e.snmc.io/i/600/w/0179e8d94099e6196642fb25d3f2bfe7/12554565", "ratings": 360, "genres": ["black metal"], "explicit": false },
+    { "artist": "平沢進 [Susumu Hirasawa]", "album": "植物電子の本 The Book of Phytoelectron", "cover": "https://e.snmc.io/i/600/w/b456fc9d7f4a3c0cba590c98c07ecf43/12813028", "ratings": 157, "genres": ["post-rock", "new age"], "explicit": false },
+    { "artist": "Various Artists", "album": "under.net Compilation DISC 2.1: EUPHORIA", "cover": "https://e.snmc.io/i/600/w/600af0ad8e8d72b90c6639d809c7b6c0/12341063", "ratings": 53, "genres": ["trance"], "explicit": false },
+    { "artist": "SimCard StyleGAN", "album": "¥€n $ign", "cover": "https://e.snmc.io/i/600/w/49def8413f37f38b77e6cf6150fa8897/12535720", "ratings": 35, "genres": ["sound collage", "post-industrial"], "explicit": false },
+    { "artist": "death's dynamic shroud.wmv", "album": "Never Really Over", "cover": "https://e.snmc.io/i/600/w/efec56020c552df25efa45bdba22ec35/12266247", "ratings": 271, "genres": ["glitch pop", "plunderphonics"], "explicit": false },
+    { "artist": "Fellwinter", "album": "In Night’s Eternal Grasp", "cover": "https://e.snmc.io/i/600/w/0c6e5458746e319df450a49035680539/12339308", "ratings": 159, "genres": ["black metal"], "explicit": false },
+    { "artist": "renamon", "album": "such sweet sorrow", "cover": "https://e.snmc.io/i/600/w/6ed597d61a8b5a4a88b72e36656b1814/12381309", "ratings": 134, "genres": ["harsh noise wall"], "explicit": false },
+    { "artist": "Sirio", "album": "Cadillac One", "cover": "https://e.snmc.io/i/600/w/5db5ddb05d99525c7b4d60889cc2dccc/12037816", "ratings": 58, "genres": ["drumless"], "explicit": false },
+    { "artist": "FIGURE SKATER", "album": "FS3: Virtua Clouds 3", "cover": "https://e.snmc.io/i/600/w/7565d57f851c87c758dac478506c088f/12177237", "ratings": 47, "genres": ["electronic dance music"], "explicit": false },
+    { "artist": "Timeless Fairytale", "album": "A Story to Tell", "cover": "https://e.snmc.io/i/600/w/09d442eed516232943a9ab409435d1d6/12466684", "ratings": 93, "genres": ["power metal"], "explicit": false },
+    { "artist": "Matías Ávila", "album": "+ o -", "cover": "https://e.snmc.io/i/600/w/26c0a37b422c9d42654163b42a5c0961/12856695", "ratings": 77, "genres": ["singer-songwriter", "indie folk", "psychedelic folk", "folktronica"], "explicit": false },
+    { "artist": "Múr", "album": "Múr", "cover": "https://e.snmc.io/i/600/w/e808d43c68f9378670bfee7c6852a2a6/12854735", "ratings": 355, "genres": ["post-metal", "progressive metal"], "explicit": false },
+    { "artist": "Jesse Welles", "album": "Patchwork", "cover": "https://e.snmc.io/i/600/w/574cd5031b8107f3278f989a0da15401/12532389", "ratings": 99, "genres": ["contemporary folk", "singer-songwriter"], "explicit": false },
+    { "artist": "Magnolia Cacophony", "album": "(Come in Alone) With You", "cover": "https://e.snmc.io/i/600/w/898b2dfed61a8127a500454711575986/12104565", "ratings": 289, "genres": ["shoegaze", "dream pop"], "explicit": false },
+    { "artist": "beluga ryba", "album": "DZIADZIA", "cover": "https://e.snmc.io/i/600/w/c376b0656079c9ea2691977d83dad4d6/12750937", "ratings": 50, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Qzyn", "album": "Jasny obraz ciemnych czasów", "cover": "https://e.snmc.io/i/600/w/e751256f5e084bdcb924dc042dae3149/12388571", "ratings": 93, "genres": ["conscious hip hop"], "explicit": false },
+    { "artist": "Nando García", "album": "Decir amor", "cover": "https://e.snmc.io/i/600/w/851f67b5d0d89711ed6dd7e8573c8f98/12166933", "ratings": 226, "genres": ["folk pop"], "explicit": false },
+    { "artist": "Klocuch", "album": "ulubione kolendy", "cover": "https://e.snmc.io/i/600/w/dd2302bc791fed1eb6fd8b44760eebaf/12793362", "ratings": 32, "genres": ["musical parody", "novelty", "carols"], "explicit": false },
+    { "artist": "sunlid", "album": "no mires atrás", "cover": "https://e.snmc.io/i/600/w/e9d4c825409b61b596593e587a5f239a/12547787", "ratings": 575, "genres": ["indie pop", "shoegaze"], "explicit": false },
+    { "artist": "xEDENISGONEx", "album": "Pain", "cover": "https://e.snmc.io/i/600/w/1cb58f8f8302dc661486011ed991647b/12376311", "ratings": 103, "genres": ["melodic metalcore"], "explicit": false },
+    { "artist": "username", "album": "god bless", "cover": "https://e.snmc.io/i/600/w/c97d60c165ac405b91c57fa779640bb2/12400706", "ratings": 307, "genres": ["footwork"], "explicit": false },
+    { "artist": "Fugitive Wizard", "album": "Apocrypha", "cover": "https://e.snmc.io/i/600/w/15f7c85615c7de2f336bdc2b0c0638e7/12200121", "ratings": 203, "genres": ["black metal"], "explicit": false },
+    { "artist": "49 Winchester", "album": "Leavin' This Holler", "cover": "https://e.snmc.io/i/600/w/0c75b8da758a46e0ebc08a26e1816d2b/11990820", "ratings": 90, "genres": ["country", "americana"], "explicit": false },
+    { "artist": "MyGO!!!!!", "album": "跡暖空 Michinoku", "cover": "https://e.snmc.io/i/600/w/56156662b9b84bc216fc7e93b7625f0c/12558081", "ratings": 104, "genres": ["pop punk", "shimokita-kei", "alternative rock"], "explicit": false },
+    { "artist": "Hoovaranas", "album": "Três", "cover": "https://e.snmc.io/i/600/w/f2bdd56c043171daacc4c83d29325a12/12307628", "ratings": 55, "genres": ["math rock"], "explicit": false },
+    { "artist": "sewerperson", "album": "The Otherlands", "cover": "https://e.snmc.io/i/600/w/184ffec21f7d3d96442bb097f4b71e56/12567607", "ratings": 30, "genres": ["emo rap"], "explicit": false },
+    { "artist": "Kreem", "album": "Sauvignon Funk", "cover": "https://e.snmc.io/i/600/w/a72929905defacde340a97d858befd23/12177509", "ratings": 111, "genres": ["jazz rap", "drumless"], "explicit": false },
+    { "artist": "/f", "album": "3rd Bully", "cover": "https://e.snmc.io/i/600/w/80c530c91b0489f3e1faf1b0166bbc44/12823503", "ratings": 91, "genres": ["idm", "glitch"], "explicit": false },
+    { "artist": "Nico Carreño", "album": "ISRS", "cover": "https://e.snmc.io/i/600/w/a1d9eaa4275cfa2717fd44dbde7ffe0e/12352997", "ratings": 98, "genres": ["progressive folk", "avant-prog"], "explicit": false },
+    { "artist": "Various Artists", "album": "Season 3", "cover": "https://e.snmc.io/i/600/w/2d26f69bd0939a43a2aa6d429798c696/12778827", "ratings": 57, "genres": ["idm", "experimental", "electronic"], "explicit": false },
+    { "artist": "王忆灵 [Wang Yiling]", "album": "枯萎颂 (Ode to Wither)", "cover": "https://e.snmc.io/i/600/w/ab0887a31a08db2dc5dee9a4d6c33171/12537584", "ratings": 131, "genres": ["chamber folk", "singer-songwriter", "art pop"], "explicit": false },
+    { "artist": "Demon Bitch", "album": "Master of the Games", "cover": "https://e.snmc.io/i/600/w/0e547a917bdb374996326546c4dc5a87/12627729", "ratings": 511, "genres": ["us power metal"], "explicit": false },
+    { "artist": "Laudare", "album": "Requiem", "cover": "https://e.snmc.io/i/600/w/24dead00e5b4e03b6ecb293fcca52b0a/12760440", "ratings": 128, "genres": ["post-metal", "chamber music"], "explicit": false },
+    { "artist": "Ardente", "album": "La nuit éternelle", "cover": "https://e.snmc.io/i/600/w/6cb5810fdbd16cd76539c395f27aaa05/12706197", "ratings": 79, "genres": ["black metal"], "explicit": false },
+    { "artist": "La Calandria", "album": "Antes de salir el sol", "cover": "https://e.snmc.io/i/600/w/a16c1a032bd6ca0b5f6efa0c13372d71/12661688", "ratings": 30, "genres": ["son jarocho"], "explicit": false },
+    { "artist": "caroline", "album": "caroline", "cover": "https://e.snmc.io/i/600/w/c874c6074a5871cd49baa33a820a661c/9473463", "ratings": 3840, "genres": ["post-rock", "avant-folk"], "explicit": false },
+    { "artist": "caroline", "album": "caroline 2", "cover": "https://e.snmc.io/i/600/w/443661b587a1cda3992eb689d25cc0c7/13248275", "ratings": 3580, "genres": ["post-rock", "avant-folk"], "explicit": false },
+    { "artist": "Various Artists", "album": "Hope You're Well", "cover": "https://e.snmc.io/i/600/w/de956fe870e2b142375e086219bbd975/8156998", "ratings": 8, "genres": ["ambient"], "explicit": false },
+    { "artist": "Godspeed You Black Emperor!", "album": "F♯A♯∞", "cover": "https://e.snmc.io/i/600/w/3b4306752e6a0273dc2ac5624459c3c3/11681270", "ratings": 45909, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Godspeed You Black Emperor!", "album": "Lift Yr. Skinny Fists Like Antennas to Heaven!", "cover": "https://e.snmc.io/i/600/w/6f600382625979469fb340eeb3c9ac8a/5662600", "ratings": 58621, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Godspeed You! Black Emperor", "album": "Yanqui U.X.O.", "cover": "https://e.snmc.io/i/600/w/a926643305ec638337e41158a456ff92/5077485", "ratings": 21570, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Godspeed You! Black Emperor", "album": "'Allelujah! Don't Bend! Ascend!", "cover": "https://e.snmc.io/i/600/w/94c05111e5e0051f0383c4c01629b2cb/4422249", "ratings": 18330, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Godspeed You! Black Emperor", "album": "'Asunder, Sweet and Other Distress'", "cover": "https://e.snmc.io/i/600/w/d24b1eb8b7f2d63631177d87dd650511/9746681", "ratings": 10458, "genres": ["post-rock", "drone"], "explicit": false },
+    { "artist": "Godspeed You! Black Emperor", "album": "&quot;Luciferian Towers&quot;", "cover": "https://e.snmc.io/i/600/w/d3c0f6a2c31bb22394f9d91928f54dfd/6677224", "ratings": 9928, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Godspeed You! Black Emperor", "album": "G_d's Pee AT STATE'S END!", "cover": "https://e.snmc.io/i/600/w/486224308b0ee5449edc3f29e5549b49/8898156", "ratings": 14877, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Slint", "album": "Tweez", "cover": "https://e.snmc.io/i/600/w/1b2d53e0b0aa43ebd04067c769ecfdcf/12465638", "ratings": 10852, "genres": ["noise rock", "math rock", "post-hardcore"], "explicit": false },
+    { "artist": "Slint", "album": "Spiderland", "cover": "https://e.snmc.io/i/600/w/bd09421e69e4bc489eec86329627f9c5/12423124", "ratings": 56507, "genres": ["post-rock", "post-hardcore", "math rock"], "explicit": false },
+    { "artist": "Radiohead", "album": "Pablo Honey", "cover": "https://e.snmc.io/i/600/w/dcad45f27bd983c2c52e685aea2b665f/2354834", "ratings": 45182, "genres": ["alternative rock"], "explicit": false },
+    { "artist": "Radiohead", "album": "The Bends", "cover": "https://e.snmc.io/i/600/w/cfd89facc251a1798ea8993a67d925e0/10134177", "ratings": 79261, "genres": ["alternative rock", "post-britpop"], "explicit": false },
+    { "artist": "Radiohead", "album": "OK Computer", "cover": "https://e.snmc.io/i/600/w/91f41d53d83f36ac3bb0cee7d6dffca3/11993756", "ratings": 123424, "genres": ["alternative rock", "art rock"], "explicit": false },
+    { "artist": "Radiohead", "album": "Kid A", "cover": "https://e.snmc.io/i/600/w/076215c80b1810341e978bbdbf47af69/12580450", "ratings": 99341, "genres": ["art rock", "electronic"], "explicit": false },
+    { "artist": "Radiohead", "album": "Amnesiac", "cover": "https://e.snmc.io/i/600/w/7c6faa3d5e418d03b041363d17fa1ae9/8879640", "ratings": 59761, "genres": ["art rock", "experimental rock"], "explicit": false },
+    { "artist": "Radiohead", "album": "Hail to the Thief", "cover": "https://e.snmc.io/i/600/w/9fd1600d89a4eacea317b111631b0fe9/13305513", "ratings": 52511, "genres": ["art rock", "alternative rock"], "explicit": false },
+    { "artist": "Radiohead", "album": "In Rainbows", "cover": "https://e.snmc.io/i/600/w/c157afb03d11f9939ff65dc3ed0911f8/12945044", "ratings": 94286, "genres": ["art rock", "alternative rock"], "explicit": false },
+    { "artist": "Radiohead", "album": "The King of Limbs", "cover": "https://e.snmc.io/i/600/w/32c75da28a9928187fed2304ffbc944d/8669703", "ratings": 37778, "genres": ["electronic", "experimental rock"], "explicit": false },
+    { "artist": "Radiohead", "album": "A Moon Shaped Pool", "cover": "https://e.snmc.io/i/600/w/d4241861e4813585f0990be15c913ea6/6118638", "ratings": 52014, "genres": ["art pop", "art rock", "chamber pop"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "The Piper at the Gates of Dawn", "cover": "https://e.snmc.io/i/600/w/d14643f3718981601c5e068385cec3bd/10430743", "ratings": 41149, "genres": ["psychedelic rock", "psychedelic pop"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "A Saucerful of Secrets", "cover": "https://e.snmc.io/i/600/w/265345a494087818a56009edb2887aa4/10431605", "ratings": 25187, "genres": ["psychedelic rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "Ummagumma", "cover": "https://e.snmc.io/i/600/w/7658af5173f4f362c91e831e69ad7352/11733457", "ratings": 18673, "genres": ["psychedelic rock", "experimental"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "Atom Heart Mother", "cover": "https://e.snmc.io/i/600/w/9382ee44147c678d1da091288ca6a380/10434965", "ratings": 28969, "genres": ["progressive rock", "psychedelic rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "Meddle", "cover": "https://e.snmc.io/i/600/w/b5a6d648feb805af3faf4430e4f53f91/12949090", "ratings": 43779, "genres": ["progressive rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "Obscured by Clouds", "cover": "https://e.snmc.io/i/600/w/d40eed145c177c29d705eda3b36f65b5/3777047", "ratings": 15858, "genres": ["psychedelic rock", "progressive rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "The Dark Side of the Moon", "cover": "https://e.snmc.io/i/600/w/b87ea178beaaaf0e0e4a39aaf9d1b834/12206378", "ratings": 96474, "genres": ["art rock", "progressive rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "Wish You Were Here", "cover": "https://e.snmc.io/i/600/w/439b9503e9599050fda01d8eef4f8097/4184635", "ratings": 84380, "genres": ["progressive rock", "art rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "Animals", "cover": "https://e.snmc.io/i/600/w/e3c3e7de5e4b0dcb773319b423e64df8/4175208", "ratings": 60963, "genres": ["progressive rock", "art rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "The Wall", "cover": "https://e.snmc.io/i/600/w/49e195fb7c63c079d3cd4e1bd7c1fbcd/11169029", "ratings": 56838, "genres": ["rock opera", "art rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "The Final Cut", "cover": "https://e.snmc.io/i/600/w/81a234d84fb64a2077e2d77ed188edf0/5933147", "ratings": 17173, "genres": ["art rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "A Momentary Lapse of Reason", "cover": "https://e.snmc.io/i/600/w/624306f4872d7f3e4a11c6bbe28fe0bc/11641080", "ratings": 14775, "genres": ["art rock", "progressive rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "The Division Bell", "cover": "https://e.snmc.io/i/600/w/d4778dbadf0c7c7b890148a4a5da5d06/6267549", "ratings": 20402, "genres": ["art rock", "progressive rock"], "explicit": false },
+    { "artist": "Pink Floyd", "album": "The Endless River", "cover": "https://e.snmc.io/i/600/w/dbcfbca1519acfbaab9d0b9f1c1c7ccd/5417553", "ratings": 9224, "genres": ["art rock"], "explicit": false },
+    { "artist": "King Crimson", "album": "In the Court of the Crimson King", "cover": "https://e.snmc.io/i/600/w/3cd976bf3380626a9001dc2f1499037b/11859497", "ratings": 77785, "genres": ["progressive rock", "art rock"], "explicit": false },
+    { "artist": "King Crimson", "album": "In the Wake of Poseidon", "cover": "https://e.snmc.io/i/600/w/322716fa6c1700e17a7a1ff04c337a16/10434848", "ratings": 18471, "genres": ["progressive rock", "art rock"], "explicit": false },
+    { "artist": "King Crimson", "album": "Lizard", "cover": "https://e.snmc.io/i/600/w/e507576e33c122927550a96c1d359c41/11628877", "ratings": 15552, "genres": ["progressive rock", "symphonic prog"], "explicit": false },
+    { "artist": "King Crimson", "album": "Islands", "cover": "https://e.snmc.io/i/600/w/1d6706809a4ce73cbef7ab5609f06d5a/11628873", "ratings": 15348, "genres": ["progressive rock"], "explicit": false },
+    { "artist": "King Crimson", "album": "Larks' Tongues in Aspic", "cover": "https://e.snmc.io/i/600/w/748f3a8f2332d433e793a5f795322387/8549123", "ratings": 25781, "genres": ["progressive rock", "avant-prog"], "explicit": false },
+    { "artist": "King Crimson", "album": "Starless and Bible Black", "cover": "https://e.snmc.io/i/600/w/01dc984637c957fc6a102bd0003659b0/1923450", "ratings": 13550, "genres": ["progressive rock", "experimental rock"], "explicit": false },
+    { "artist": "King Crimson", "album": "Red", "cover": "https://e.snmc.io/i/600/w/8340dbdb07093199f38d7a61df74e0d0/10733413", "ratings": 41147, "genres": ["progressive rock", "art rock"], "explicit": false },
+    { "artist": "King Crimson", "album": "Discipline", "cover": "https://e.snmc.io/i/600/w/89250df0ef34d772b048fa94a6323cef/6177699", "ratings": 25209, "genres": ["art rock", "progressive rock", "new wave"], "explicit": false },
+    { "artist": "King Crimson", "album": "Beat", "cover": "https://e.snmc.io/i/600/w/2eb9edef053de586fd12c7979541e2ed/11628849", "ratings": 8725, "genres": ["art rock", "progressive rock", "new wave"], "explicit": false },
+    { "artist": "King Crimson", "album": "Three of a Perfect Pair", "cover": "https://e.snmc.io/i/600/w/a0c8a75ac2bba361d39ef660e8d59b14/11628839", "ratings": 8196, "genres": ["art rock", "progressive rock", "new wave"], "explicit": false },
+    { "artist": "King Crimson", "album": "THRAK", "cover": "https://e.snmc.io/i/600/w/bb6c5cd8b7ec029ab41f08b891f83be5/11628900", "ratings": 6764, "genres": ["progressive rock", "industrial rock"], "explicit": false },
+    { "artist": "King Crimson", "album": "The ConstruKction of Light", "cover": "https://e.snmc.io/i/600/w/897b99c457789092d417b777b87a9cf8/11628898", "ratings": 4641, "genres": ["progressive rock", "progressive metal"], "explicit": false },
+    { "artist": "King Crimson", "album": "The Power to Believe", "cover": "https://e.snmc.io/i/600/w/dfa43cf4f75c4471bae23baf7a1f48b7/9859542", "ratings": 5777, "genres": ["progressive rock", "progressive metal", "industrial metal"], "explicit": false },
+    { "artist": "Clipse", "album": "Let God Sort Em Out", "cover": "https://e.snmc.io/i/600/w/1d0cefdd6e0d6162175dfa9da8162d75/13398607", "ratings": 11187, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Clipse", "album": "Exclusive Audio Footage", "cover": "https://e.snmc.io/i/600/w/59b1d360e73e1ddecaf168017ad6ab51/9901473", "ratings": 262, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Clipse", "album": "Lord Willin'", "cover": "https://e.snmc.io/i/600/w/1a678ca40ff2a5a66c2324e86cedd393/12054155", "ratings": 5745, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Clipse", "album": "Hell Hath No Fury", "cover": "https://e.snmc.io/i/600/w/f428a5a15d7ae370e1d173992a1c8071/1733335", "ratings": 12407, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Clipse", "album": "Til the Casket Drops", "cover": "https://e.snmc.io/i/600/w/87cc65ea1955ae6b3ec07478b28070da/2863384", "ratings": 1481, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Fiona Apple", "album": "Tidal", "cover": "https://e.snmc.io/i/600/w/56f31a4fc0d84256f383cc01afd14cb2/8196420", "ratings": 15988, "genres": ["singer-songwriter", "piano rock"], "explicit": false },
+    { "artist": "Fiona Apple", "album": "When the Pawn", "cover": "https://e.snmc.io/i/600/w/36a8a926b84c0ceba1de4d01837845f3/11666558", "ratings": 24260, "genres": ["singer-songwriter", "piano rock", "alternative rock"], "explicit": false },
+    { "artist": "Fiona Apple", "album": "Extraordinary Machine", "cover": "https://e.snmc.io/i/600/w/beaf8a8ad6a5e456a0b2d608e0f06957/8983464", "ratings": 9300, "genres": ["singer-songwriter", "piano rock", "art pop", "alternative rock"], "explicit": false },
+    { "artist": "Fiona Apple", "album": "The Idler Wheel Is Wiser Than the Driver of the Screw and Whipping Cords Will Serve You More Than Ropes Will Ever Do", "cover": "https://e.snmc.io/i/600/w/bf420b0868fe8559e1f29de6d80dcb12/6171596", "ratings": 17344, "genres": ["singer-songwriter", "art pop"], "explicit": false },
+    { "artist": "Fiona Apple", "album": "Fetch the Bolt Cutters", "cover": "https://e.snmc.io/i/600/w/c7f527ca0ee0bc3cbfa09809d28d3bc0/8125845", "ratings": 26873, "genres": ["singer-songwriter", "art pop", "progressive pop"], "explicit": false },
+    { "artist": "Joanna Newsom", "album": "The Milk-Eyed Mender", "cover": "https://e.snmc.io/i/600/w/f037fad508714ff22f0231cd96f1c22f/11869585", "ratings": 10963, "genres": ["singer-songwriter", "contemporary folk", "freak folk"], "explicit": false },
+    { "artist": "Joanna Newsom", "album": "Ys", "cover": "https://e.snmc.io/i/600/w/0f3dbdb9355ef2046eb645bbe67505ba/7851102", "ratings": 24240, "genres": ["chamber folk", "progressive folk", "singer-songwriter"], "explicit": false },
+    { "artist": "Joanna Newsom", "album": "Have One on Me", "cover": "https://e.snmc.io/i/600/w/9c2023424a2c4e2613f409a119a6363c/5213492", "ratings": 13059, "genres": ["chamber folk", "singer-songwriter", "progressive folk"], "explicit": false },
+    { "artist": "Joanna Newsom", "album": "Divers", "cover": "https://e.snmc.io/i/600/w/e14822b54e6544189c5af6fbbc42183b/10085868", "ratings": 8904, "genres": ["chamber folk", "singer-songwriter"], "explicit": false },
+    { "artist": "DJ Sabrina the Teenage DJ", "album": "Destiny", "cover": "https://e.snmc.io/i/600/w/9ed9bbb5b4f8081e74612ba82ad0a5b7/11254776", "ratings": 2646, "genres": ["house"], "explicit": false },
+    { "artist": "Valgur", "album": "Armaggedon", "cover": "https://e.snmc.io/i/600/w/02f00e17c64322cb57a6796081f3e2f6/11412457", "ratings": 584, "genres": ["synthpop", "progressive pop"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "Voir Dire", "cover": "https://e.snmc.io/i/600/w/8797ed127919218b89059c72ed0364c6/11461157", "ratings": 11276, "genres": ["abstract hip hop", "drumless"], "explicit": false },
+    { "artist": "PinkPantheress", "album": "Heaven Knows", "cover": "https://e.snmc.io/i/600/w/d80562cc0d519d50ebe79c1d9828dc17/11405527", "ratings": 11463, "genres": ["contemporary r&b", "alt-pop", "electronic dance music"], "explicit": false },
+    { "artist": "Trhä", "album": "Lhum'ad'sejja", "cover": "https://e.snmc.io/i/600/w/29a9a19023900f4a3ad887f90ea8c73b/11411462", "ratings": 688, "genres": ["atmospheric black metal"], "explicit": false },
+    { "artist": "Agusa", "album": "Prima Materia", "cover": "https://e.snmc.io/i/600/w/e7dcedb9d24fa11f09a54ead144a2123/11139877", "ratings": 353, "genres": ["progressive rock", "progressive folk"], "explicit": false },
+    { "artist": "Trhä", "album": "Av◊ëlajnt◊ë£ hinnem nihre Avrhëlajntrhëhh hinnem nihre", "cover": "https://e.snmc.io/i/600/w/fa9768953c88ca508e76c3a642a226e5/11465062", "ratings": 1476, "genres": ["black metal"], "explicit": false },
+    { "artist": "Thus Spoke Zarathustra", "album": "Act Like You Don't Know", "cover": "https://e.snmc.io/i/600/w/2e06968dac80c99501674a7ea2b26905/13582409", "ratings": 468, "genres": ["deathcore"], "explicit": false },
+    { "artist": "Odz Manouk", "album": "Բոսորագազան Bosoragazan", "cover": "https://e.snmc.io/i/600/w/f8e674be4ba39e917b4feaf9dffbb2ee/11411497", "ratings": 993, "genres": ["black metal"], "explicit": false },
+    { "artist": "Estoy Bien", "album": "Apoyo emocional", "cover": "https://e.snmc.io/i/600/w/d6be2c2ce41f2289633fe00b5c3b772b/11534408", "ratings": 1698, "genres": ["emo-pop"], "explicit": false },
+    { "artist": "Paramore", "album": "This Is Why", "cover": "https://e.snmc.io/i/600/w/233637a9abccd4f98315d5c0399f81d7/10297048", "ratings": 16195, "genres": ["post-punk revival"], "explicit": false },
+    { "artist": "Aprxel", "album": "Tapetumlucidum<3", "cover": "https://e.snmc.io/i/600/w/6b782dabfa488c90617d9279ef3d5bc5/11399965", "ratings": 804, "genres": ["alternative r&b", "neo-psychedelia", "art pop"], "explicit": false },
+    { "artist": "Shallowater", "album": "There Is a Well", "cover": "https://e.snmc.io/i/600/w/136b0e31377eabf2709b68e3e3753088/11519395", "ratings": 597, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Squid", "album": "O Monolith", "cover": "https://e.snmc.io/i/600/w/8d3a4d80fe4df7813388c20ce7834285/10697243", "ratings": 10721, "genres": ["art punk", "experimental rock", "post-rock"], "explicit": false },
+    { "artist": "Money Mardragon SpaceGhostPurrp", "album": "Belaire Black Bottle Boyz (Carol City to West Atlanta Zone 1)", "cover": "https://e.snmc.io/i/600/w/38faa6eb65b9504e95eb0662fc5d0cf3/11589474", "ratings": 1098, "genres": ["trap", "experimental hip hop"], "explicit": false },
+    { "artist": "Hellix", "album": "Montage", "cover": "https://e.snmc.io/i/600/w/80d1d2bea55b9e13636cf0775f2098f1/12523689", "ratings": 357, "genres": ["technical thrash metal", "progressive metal", "avant-garde metal"], "explicit": false },
+    { "artist": "Raja Kirik", "album": "Phantasmagoria of Jathilan", "cover": "https://e.snmc.io/i/600/w/7ffc63f5aec085327ccce0ef66cd0f0b/11154931", "ratings": 612, "genres": ["post-industrial", "kuda kepang"], "explicit": false },
+    { "artist": "Jeromes Dream", "album": "The Gray in Between", "cover": "https://e.snmc.io/i/600/w/262552a6989c8516f5975f29febc2f41/10754410", "ratings": 5800, "genres": ["screamo", "noise rock"], "explicit": false },
+    { "artist": "Yves Tumor", "album": "Praise a Lord Who Chews but Which Does Not Consume; (Or Simply, Hot Between Worlds)", "cover": "https://e.snmc.io/i/600/w/03b12807ce233a407ae936c97c2eb151/11411449", "ratings": 12632, "genres": ["neo-psychedelia", "post-punk"], "explicit": false },
+    { "artist": "Liturgy", "album": "93696", "cover": "https://e.snmc.io/i/600/w/e91406b3d7c4160b0a83b96a0b0bf85f/10314512", "ratings": 6944, "genres": ["avant-garde metal", "black metal"], "explicit": false },
+    { "artist": "Trhä", "album": "Alëce iΩic", "cover": "https://e.snmc.io/i/600/w/0480de19dcb8dd78e04740d5b6aaadac/11411460", "ratings": 1233, "genres": ["atmospheric black metal"], "explicit": false },
+    { "artist": "DJ Ramon Sucesso", "album": "Sexta dos crias", "cover": "https://e.snmc.io/i/600/w/d01005d91dfaa3ad9d17617ead7f5277/11503542", "ratings": 1817, "genres": ["funk 150 bpm", "beat bolha"], "explicit": false },
+    { "artist": "Ana Frango Elétrico", "album": "Me chama de gato que eu sou sua", "cover": "https://e.snmc.io/i/600/w/0f99d888c28f31a1f85e25d9390548a4/11229865", "ratings": 6207, "genres": ["sophisti-pop", "funk"], "explicit": false },
+    { "artist": "Portraits of Tracy", "album": "Drive Home", "cover": "https://e.snmc.io/i/600/w/36dad7b8c498d3888ba0a5017044e13e/12822797", "ratings": 352, "genres": ["pop rap", "alternative r&b", "art pop", "conscious hip hop"], "explicit": false },
+    { "artist": "Temachii", "album": "Flora Maniia", "cover": "https://e.snmc.io/i/600/w/c615b12563f3d8e6cf2aa85b74e5d62c/10943039", "ratings": 792, "genres": ["dream pop", "indie rock"], "explicit": false },
+    { "artist": "Moonlight Sorcery", "album": "Horned Lord of the Thorned Castle", "cover": "https://e.snmc.io/i/600/w/9e4c9a30735ffe795ce04633133e8272/11244573", "ratings": 1837, "genres": ["melodic black metal", "symphonic black metal"], "explicit": false },
+    { "artist": "Asia Menor", "album": "Enola Gay", "cover": "https://e.snmc.io/i/600/w/f18900db8adbde3ec7b6e79cca153e87/11251668", "ratings": 5336, "genres": ["indie rock", "art punk", "post-punk"], "explicit": false },
+    { "artist": "Carly Rae Jepsen", "album": "The Loveliest Time", "cover": "https://e.snmc.io/i/600/w/4430b30c955002eb78b22664dc986f81/11156964", "ratings": 9363, "genres": ["dance-pop"], "explicit": false },
+    { "artist": "Joey Valence & Brae", "album": "Punk Tactics", "cover": "https://e.snmc.io/i/600/w/ab8dead3b3e1fad6940842d5cff276ab/11304312", "ratings": 3831, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "bl4ck m4rket c4rt", "album": "Today I Laid Down", "cover": "https://e.snmc.io/i/600/w/6852870dbcfcbdad34d3530b7b63da65/11568467", "ratings": 7392, "genres": ["slowcore", "slacker rock"], "explicit": false },
+    { "artist": "Patricia Taxxon", "album": "TECHDOG 5", "cover": "https://e.snmc.io/i/600/w/e2f4da7dc03d6542369b7dd315651462/11438616", "ratings": 441, "genres": ["dark ambient", "idm", "glitch"], "explicit": false },
+    { "artist": "Patricia Taxxon", "album": "TECHDOG 3", "cover": "https://e.snmc.io/i/600/w/916814d556e21833fbea71cf2a63b59c/13023796", "ratings": 445, "genres": ["idm"], "explicit": false },
+    { "artist": "ØXN", "album": "CYRM", "cover": "https://e.snmc.io/i/600/w/e4e0527db066dd570447d6d79dfd45cb/11257541", "ratings": 1139, "genres": ["avant-folk", "darkwave"], "explicit": false },
+    { "artist": "Candelabro", "album": "Ahora o nunca", "cover": "https://e.snmc.io/i/600/w/3b1f724865febee768c86b5f687c6b53/11532939", "ratings": 2657, "genres": ["indie rock", "art rock"], "explicit": false },
+    { "artist": "betcover!!", "album": "馬 Uma", "cover": "https://e.snmc.io/i/600/w/1f7848ea6cad46e89d9034e17571a11e/11420196", "ratings": 4275, "genres": ["jazz-rock", "art rock", "progressive rock"], "explicit": false },
+    { "artist": "Reverend Kristin Michael Hayter", "album": "SAVED!", "cover": "https://e.snmc.io/i/600/w/12d51dc1ccd0e246770f73e3189420f5/11429205", "ratings": 6505, "genres": ["hymns", "southern gospel", "singer-songwriter", "avant-folk"], "explicit": false },
+    { "artist": "Patricia Taxxon", "album": "TECHDOG 6", "cover": "https://e.snmc.io/i/600/w/624a4a64cd2d5e55b1ed22891057263c/11441466", "ratings": 311, "genres": ["noise", "glitch"], "explicit": false },
+    { "artist": "Buice", "album": "One Day You'll See the Sun", "cover": "https://e.snmc.io/i/600/w/0ad3a69bc1542774cab500ae35082255/11519737", "ratings": 1370, "genres": ["noise rock", "post-hardcore"], "explicit": false },
+    { "artist": "Blood Abscission", "album": "I", "cover": "https://e.snmc.io/i/600/w/fcb9ca91aaf9b33509067dbfafb0982d/13238746", "ratings": 472, "genres": ["atmospheric black metal"], "explicit": false },
+    { "artist": "Florence Sinclair", "album": "Departures, Wonders & Tears", "cover": "https://e.snmc.io/i/600/w/a2a813d81b23fd2ea1054be7fa98ffe5/11156196", "ratings": 512, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "Ostraca", "album": "Disaster", "cover": "https://e.snmc.io/i/600/w/91ee650b2b3ec7efc5b1a28170359fc2/11110906", "ratings": 2024, "genres": ["screamo", "post-metal"], "explicit": false },
+    { "artist": "lostrushi", "album": "Sisterhood", "cover": "https://e.snmc.io/i/600/w/55f854b5d410dbb9e13632fdce909c08/11086063", "ratings": 2490, "genres": ["digicore", "cloud rap"], "explicit": false },
+    { "artist": "Hashirat", "album": "A place to myself", "cover": "https://e.snmc.io/i/600/w/293bfe0171173c7510fd8100820fa623/10696940", "ratings": 631, "genres": ["sound collage", "drone", "ambient", "neo-psychedelia", "experimental rock"], "explicit": false },
+    { "artist": "Tim Hecker", "album": "No Highs", "cover": "https://e.snmc.io/i/600/w/507e4bb0f6a6af3a80313e1ae8e052c2/10646876", "ratings": 6199, "genres": ["ambient", "electroacoustic"], "explicit": false },
+    { "artist": "Nourished by Time", "album": "Erotic Probiotic 2", "cover": "https://e.snmc.io/i/600/w/45fe6baee6c2958c392115f6581e2bd1/11411613", "ratings": 3276, "genres": ["alternative r&b", "bedroom pop"], "explicit": false },
+    { "artist": "Hellripper", "album": "Warlocks Grim & Withered Hags", "cover": "https://e.snmc.io/i/600/w/4e2f8b90c42cacd0fce10d800aa1fe83/10674252", "ratings": 3016, "genres": ["speed metal", "black metal"], "explicit": false },
+    { "artist": "Tinashe", "album": "BB/ANG3L", "cover": "https://e.snmc.io/i/600/w/1651ed1556b51c000d1f538f34ee19ff/11302049", "ratings": 5926, "genres": ["alternative r&b", "electronic"], "explicit": false },
+    { "artist": "Nuclear Power Trio", "album": "Wet Ass Plutonium", "cover": "https://e.snmc.io/i/600/w/3e36f8a0329d16706d523f21e0515341/11040314", "ratings": 363, "genres": ["progressive metal"], "explicit": false },
+    { "artist": "King Krule", "album": "Space Heavy", "cover": "https://e.snmc.io/i/600/w/c94d41de390fc0bf03637fdfef7086c8/10883726", "ratings": 9106, "genres": ["neo-psychedelia", "slowcore", "art rock"], "explicit": false },
+    { "artist": "Colin Stetson", "album": "When We Were That What Wept for the Sea", "cover": "https://e.snmc.io/i/600/w/16b0e9034618d605558a2b08fc80da1e/10863128", "ratings": 3101, "genres": ["post-minimalism"], "explicit": false },
+    { "artist": "Demoniac", "album": "Nube negra", "cover": "https://e.snmc.io/i/600/w/4a979a7b6c28a323353c43f131288750/11173883", "ratings": 1306, "genres": ["technical thrash metal"], "explicit": false },
+    { "artist": "Kelela", "album": "Raven", "cover": "https://e.snmc.io/i/600/w/9360a3499034269d220f505eee18ef0e/10432047", "ratings": 9838, "genres": ["alternative r&b", "electronic"], "explicit": false },
+    { "artist": "Headache", "album": "The Head Hurts but the Heart Knows the Truth", "cover": "https://e.snmc.io/i/600/w/60341c276a6c92d18f04e8caa2ba95df/11411545", "ratings": 1618, "genres": ["trip hop", "poetry"], "explicit": false },
+    { "artist": "Erik Hall", "album": "Canto Ostinato", "cover": "https://e.snmc.io/i/600/w/8a60ff4b6008d5a1bf07d0fae676241c/10451626", "ratings": 1699, "genres": ["minimalism"], "explicit": false },
+    { "artist": "Great Falls", "album": "Objects Without Pain", "cover": "https://e.snmc.io/i/600/w/9076868bfb46f0d09df019031a384bac/11412434", "ratings": 1461, "genres": ["sludge metal", "noise rock", "post-hardcore"], "explicit": false },
+    { "artist": "This Is the Glasshouse", "album": "As Small as Ants", "cover": "https://e.snmc.io/i/600/w/594beca459bbef4e1dac8e6c5e9f138f/11412452", "ratings": 514, "genres": ["indie rock", "chamber pop"], "explicit": false },
+    { "artist": "Sadness", "album": "Sadness // Abriction", "cover": "https://e.snmc.io/i/600/w/6c6b9b9b42b2058ccb97bfb9f54261f7/10835138", "ratings": 3127, "genres": ["shoegaze", "emo"], "explicit": false },
+    { "artist": "Nospūn", "album": "Opus", "cover": "https://e.snmc.io/i/600/w/e28015b9e9329aafc1777eb567d48560/11151682", "ratings": 537, "genres": ["progressive metal"], "explicit": false },
+    { "artist": "Sa!koro", "album": "GRACIAS SAIKO 2", "cover": "https://e.snmc.io/i/600/w/1a1c6d06d3e0282198d5e12376335541/10789221", "ratings": 404, "genres": ["cloud rap"], "explicit": false },
+    { "artist": "Hayden Pedigo", "album": "The Happiest Times I Ever Ignored", "cover": "https://e.snmc.io/i/600/w/1642a7350d48c0e17cf1b51b21f15bb1/10883714", "ratings": 886, "genres": ["american primitivism"], "explicit": false },
+    { "artist": "The Lemon Twigs", "album": "Everything Harmony", "cover": "https://e.snmc.io/i/600/w/48c301ef654d73a8c75a1f2739e1f428/10706695", "ratings": 5173, "genres": ["soft rock", "pop rock"], "explicit": false },
+    { "artist": "Wayfarer", "album": "American Gothic", "cover": "https://e.snmc.io/i/600/w/d4dc38e4129d2220dc5c1b78a2fbfa01/11245226", "ratings": 1444, "genres": ["atmospheric black metal"], "explicit": false },
+    { "artist": "Steve Lehman", "album": "Ex Machina", "cover": "https://e.snmc.io/i/600/w/781bf0365f49b7b6986c2395802a3fe3/11331619", "ratings": 1077, "genres": ["experimental big band", "modern creative"], "explicit": false },
+    { "artist": "Jane Remover", "album": "Census Designated", "cover": "https://e.snmc.io/i/600/w/a6861b5c0d7320dcbca4c3981b564930/11314574", "ratings": 9037, "genres": ["shoegaze", "post-rock"], "explicit": false },
+    { "artist": "Yussef Dayes", "album": "Black Classical Music", "cover": "https://e.snmc.io/i/600/w/467e9da6fb4c871ad5f9daf6eda5d31e/11411499", "ratings": 1663, "genres": ["jazz fusion"], "explicit": false },
+    { "artist": "Feeble Little Horse", "album": "Girl With Fish", "cover": "https://e.snmc.io/i/600/w/831b957fbc21a69f4ee35ee19c4d9075/10751124", "ratings": 6174, "genres": ["noise pop", "slacker rock", "indie pop"], "explicit": false },
+    { "artist": "Trhä", "album": "Rhejde qhaominvac tla aglhaonamëc", "cover": "https://e.snmc.io/i/600/w/30574ec94c08c88ceeeb25c7acd2c1c9/11411461", "ratings": 873, "genres": ["atmospheric black metal"], "explicit": false },
+    { "artist": "The Chronicles of Father Robin", "album": "The Songs & Tales of Airoea - Book I: The Tale of Father Robin (State of Nature)", "cover": "https://e.snmc.io/i/600/w/764cab1d8b8b98747949b2966e5b1c61/11331317", "ratings": 271, "genres": ["symphonic prog", "progressive rock"], "explicit": false },
+    { "artist": "Amaarae", "album": "Fountain Baby", "cover": "https://e.snmc.io/i/600/w/9552339fb71cf736cc2d6b503dc9a1f1/11048553", "ratings": 5415, "genres": ["alternative r&b", "alté"], "explicit": false },
+    { "artist": "Kostnatění", "album": "Úpal", "cover": "https://e.snmc.io/i/600/w/2a76d9348563f1277f82c1afb8d3a961/11029994", "ratings": 2401, "genres": ["black metal", "dissonant black metal"], "explicit": false },
+    { "artist": "KNOWER", "album": "Knower Forever", "cover": "https://e.snmc.io/i/600/w/3d18b7b33a9b5e1682f13ff299623baf/10937751", "ratings": 3310, "genres": ["synth funk", "jazz-funk"], "explicit": false },
+    { "artist": "Gezebelle Gaburgably", "album": "Gaburger", "cover": "https://e.snmc.io/i/600/w/cef932e243aa351a3d57c50eb58f73dd/11112327", "ratings": 1751, "genres": ["slacker rock", "power pop", "indie pop", "indietronica"], "explicit": false },
+    { "artist": "Trhä", "album": "§ºanΩë aglivajsamë cá nëlh¶iha i eddana pi¶e Shwandlhë aglivajsamë cá nëlhqhiha i eddana piqhe", "cover": "https://e.snmc.io/i/600/w/239307a03e3a4408abeac901183a2c04/11411456", "ratings": 867, "genres": ["atmospheric black metal"], "explicit": false },
+    { "artist": "Mon Laferte", "album": "Autopoiética", "cover": "https://e.snmc.io/i/600/w/d8f585564a0acda217fa48a718ca8503/11488290", "ratings": 1557, "genres": ["art pop", "latin alternative"], "explicit": false },
+    { "artist": "Jalen Ngonda", "album": "Come Around and Love Me", "cover": "https://e.snmc.io/i/600/w/c64871b92ecedb2eff6dd81a0f894029/11171790", "ratings": 696, "genres": ["soul", "progressive soul"], "explicit": false },
+    { "artist": "WRRN", "album": "¿Qué se siente estar mejor?", "cover": "https://e.snmc.io/i/600/w/d2b04f3d4b338f5aef7c8d09aafdc0b9/11249945", "ratings": 545, "genres": ["screamo", "shoegaze"], "explicit": false },
+    { "artist": "15,000 Guns", "album": "Teratoma", "cover": "https://e.snmc.io/i/600/w/064642b3c12a21960aaa79438da62075/13454460", "ratings": 496, "genres": ["noise rock", "post-hardcore", "math rock"], "explicit": false },
+    { "artist": "Low", "album": "I Could Live in Hope", "cover": "https://e.snmc.io/i/600/w/c31bf61e0d92db180d089d245a482817/1725834", "ratings": 16889, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Low", "album": "Long Division", "cover": "https://e.snmc.io/i/600/w/d37e8f4e513802c830e49be3fc7f8bba/7357615", "ratings": 3778, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Low", "album": "The Curtain Hits the Cast", "cover": "https://e.snmc.io/i/600/w/a671ac703fc59b8907c9855eb0948d9f/6621017", "ratings": 4258, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Low", "album": "Secret Name", "cover": "https://e.snmc.io/i/600/w/cd2fc541f56834e2a6f98fed9305487f/4094764", "ratings": 2467, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Low", "album": "Things We Lost in the Fire", "cover": "https://e.snmc.io/i/600/w/767c980d87fee4d3108cb377f77e5f75/10481398", "ratings": 7371, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Low", "album": "Trust", "cover": "https://e.snmc.io/i/600/w/79892790f34321d6e0f3f81ee0bdb281/2358607", "ratings": 3254, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Low", "album": "The Great Destroyer", "cover": "https://e.snmc.io/i/600/w/3408ca9d6390f08dc9bd976cecab1e8f/12125638", "ratings": 2849, "genres": ["indie rock"], "explicit": false },
+    { "artist": "Low", "album": "Drums and Guns", "cover": "https://e.snmc.io/i/600/w/4f9f3d402e1d6d3c8ba944005cb6ad99/1833330", "ratings": 2219, "genres": ["slowcore", "ambient pop", "post-rock"], "explicit": false },
+    { "artist": "Low", "album": "C'mon", "cover": "https://e.snmc.io/i/600/w/67d79ffa81c0e47bb62f9aaba181e9df/8968710", "ratings": 2457, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Low", "album": "The Invisible Way", "cover": "https://e.snmc.io/i/600/w/02cacbad01d042f12c151321da76c3d8/4537834", "ratings": 1706, "genres": ["slowcore", "indie folk"], "explicit": false },
+    { "artist": "Low", "album": "Ones and Sixes", "cover": "https://e.snmc.io/i/600/w/a6ac27081cee61e5407693e6742f4edb/5744541", "ratings": 2328, "genres": ["slowcore", "indie rock"], "explicit": false },
+    { "artist": "Low", "album": "Double Negative", "cover": "https://e.snmc.io/i/600/w/a49bdbdf62f96475eb6b1fab65064e6f/8773071", "ratings": 7953, "genres": ["ambient pop", "glitch pop"], "explicit": false },
+    { "artist": "Low", "album": "HEY WHAT", "cover": "https://e.snmc.io/i/600/w/6228cf7825080f5b953c36277d7091ca/9178833", "ratings": 9698, "genres": ["ambient pop", "post-industrial", "experimental rock"], "explicit": false },
+    { "artist": "slowthai", "album": "UGLY", "cover": "https://e.snmc.io/i/600/w/ca5ca737650d815ad4573690ee130fff/10644521", "ratings": 12787, "genres": ["hip hop", "post-punk"], "explicit": false },
+    { "artist": "Jason Isbell and The 400 Unit", "album": "Weathervanes", "cover": "https://e.snmc.io/i/600/w/645db2f31fcdab3cdc0fe4fa6a647d12/10730982", "ratings": 1906, "genres": ["alt-country", "americana"], "explicit": false },
+    { "artist": "KOAN Sound", "album": "Led by Ancient Light", "cover": "https://e.snmc.io/i/600/w/e4f181e9e51fb1d31db3e2b7b05f8774/11285349", "ratings": 369, "genres": ["cinematic classical", "electronic"], "explicit": false },
+    { "artist": "Odz Manouk", "album": "Ծուռ Tzurr", "cover": "https://e.snmc.io/i/600/w/2201a05c9bf27e447cafae724942f27a/11121155", "ratings": 667, "genres": ["black metal"], "explicit": false },
+    { "artist": "Jute Gyte", "album": "Unus mundus patet", "cover": "https://e.snmc.io/i/600/w/9a2e1177858063e44d8126236e60a41f/11295867", "ratings": 642, "genres": ["avant-garde metal", "black metal", "dissonant black metal"], "explicit": false },
+    { "artist": "Malokarpatan", "album": "Vertumnus Caesar", "cover": "https://e.snmc.io/i/600/w/a04b92a76efa50f400262d5013cbc124/11446998", "ratings": 1112, "genres": ["black metal", "heavy metal"], "explicit": false },
+    { "artist": "Lil Yachty", "album": "Let's Start Here.", "cover": "https://e.snmc.io/i/600/w/97377b64904fa6e09af25d8c7d1fcbf2/10650404", "ratings": 22095, "genres": ["neo-psychedelia", "psychedelic rock"], "explicit": false },
+    { "artist": "Euclid C Finder", "album": "The Mirror, My Weapon, I Love You", "cover": "https://e.snmc.io/i/600/w/9f07ed37fadd778520d4efb15b722f26/11199334", "ratings": 354, "genres": ["mathcore", "sass", "grindcore"], "explicit": false },
+    { "artist": "Zach Bryan", "album": "Zach Bryan", "cover": "https://e.snmc.io/i/600/w/964c7536b701301c9e77636e048c29dd/11260374", "ratings": 4849, "genres": ["americana", "country", "singer-songwriter"], "explicit": false },
+    { "artist": "babyMINT", "album": "越來越好玩 Loading... FUN!", "cover": "https://e.snmc.io/i/600/w/f8790f8a598dbc69a4bae7fb8c509d9a/11622456", "ratings": 748, "genres": ["dance-pop"], "explicit": false },
+    { "artist": "Ralphie Choo", "album": "Supernova", "cover": "https://e.snmc.io/i/600/w/4a3de1e1417a7139b3d232fe7cd5fa3f/12542566", "ratings": 1115, "genres": ["art pop", "glitch pop"], "explicit": false },
+    { "artist": "what is your name?", "album": "My Name Is...", "cover": "https://e.snmc.io/i/600/w/bb52192de88ebd56aaaa6b32baade62c/11318553", "ratings": 2081, "genres": ["midwest emo", "neo-psychedelia"], "explicit": false },
+    { "artist": "Clandestine Blaze", "album": "Resacralize the Unknown", "cover": "https://e.snmc.io/i/600/w/fd1695f2777f5bc22a9e27591cc3a387/11119780", "ratings": 346, "genres": ["black metal"], "explicit": false },
+    { "artist": "RUÏM", "album": "Black Royal Spiritism - I.O sino da igreja", "cover": "https://e.snmc.io/i/600/w/45eadf671fe6680a60f36c2a0b7defd3/10843095", "ratings": 627, "genres": ["black metal", "dissonant black metal"], "explicit": false },
+    { "artist": "Cruel Force", "album": "Dawn of the Axe", "cover": "https://e.snmc.io/i/600/w/fc8fbc76405a1f477a6842f461f53a47/11360025", "ratings": 430, "genres": ["speed metal", "thrash metal"], "explicit": false },
+    { "artist": "Iron Firmament", "album": "Iron Firmament", "cover": "https://e.snmc.io/i/600/w/7779764305c49f1b5ad9295d652ff616/11668917", "ratings": 269, "genres": ["black metal"], "explicit": false },
+    { "artist": "Alex Walton", "album": "I Want You to Kill Me", "cover": "https://e.snmc.io/i/600/w/7b22a9d981e5792d45abd8d897c30385/11540365", "ratings": 285, "genres": ["slacker rock", "noise pop", "singer-songwriter", "noise rock"], "explicit": false },
+    { "artist": "Álex Anwandter", "album": "El diablo en el cuerpo", "cover": "https://e.snmc.io/i/600/w/599e00e48eda0f06700de13f83c46372/11411554", "ratings": 855, "genres": ["dance-pop", "synthpop", "electropop"], "explicit": false },
+    { "artist": "Peter Gabriel", "album": "i/o", "cover": "https://e.snmc.io/i/600/w/2ad5d348fa6fc5d4331cd90dc6ce7ce6/11423909", "ratings": 2950, "genres": ["art pop", "art rock"], "explicit": false },
+    { "artist": "nobonoko", "album": "Music for Animal Cafés", "cover": "https://e.snmc.io/i/600/w/82837fc48e5f31573846e29173c58958/11359122", "ratings": 526, "genres": ["lounge", "electronic", "digital fusion"], "explicit": false },
+    { "artist": "Valdrin", "album": "Throne of the Lunar Soul", "cover": "https://e.snmc.io/i/600/w/5d673cb0eec157a75a499644c06dd7c3/11672450", "ratings": 442, "genres": ["melodic black metal", "symphonic black metal"], "explicit": false },
+    { "artist": "Kitchen", "album": "Breath Too Long", "cover": "https://e.snmc.io/i/600/w/ab740c055c3196cf4245fb4cc0faaa33/11447089", "ratings": 412, "genres": ["bedroom pop", "indie folk", "slacker rock"], "explicit": false },
+    { "artist": "Trhä", "album": "enΩëcunna edëno£sa qud'lhëlh endlhëcunna edënohhsa qud'lhëlh", "cover": "https://e.snmc.io/i/600/w/8c322fc7977bd32be57e4a64656ab1cd/11411457", "ratings": 476, "genres": ["atmospheric black metal"], "explicit": false },
+    { "artist": "ML Buch", "album": "Suntub", "cover": "https://e.snmc.io/i/600/w/66030e0557f5bfa74416525467083b1f/11375621", "ratings": 2604, "genres": ["neo-psychedelia", "dream pop"], "explicit": false },
+    { "artist": "WITCH", "album": "Zango", "cover": "https://e.snmc.io/i/600/w/5844b3dc8ddf66f52c34b9cf1a42f264/10857690", "ratings": 2345, "genres": ["zamrock"], "explicit": false },
+    { "artist": "Sofia Kourtesis", "album": "Madres", "cover": "https://e.snmc.io/i/600/w/31475778cdefc7fdd2d160652be817cc/11458337", "ratings": 3043, "genres": ["deep house"], "explicit": false },
+    { "artist": "Cavalera", "album": "Morbid Visions", "cover": "https://e.snmc.io/i/600/w/c969c9b0eecc20106ab3dd03e006b068/11577056", "ratings": 1107, "genres": ["thrash metal", "death metal"], "explicit": false },
+    { "artist": "Mohini Dey", "album": "Mohini Dey", "cover": "https://e.snmc.io/i/600/w/924bd369fab1bc804c6ec96c10625f42/11412469", "ratings": 316, "genres": ["jazz fusion", "jazz-rock"], "explicit": false },
+    { "artist": "Tomb Mold", "album": "The Enduring Spirit", "cover": "https://e.snmc.io/i/600/w/2da29cfcd973e82c5a6ea9dfcc17c2d7/11400260", "ratings": 2889, "genres": ["death metal", "progressive metal"], "explicit": false },
+    { "artist": "Titanic", "album": "Vidrio", "cover": "https://e.snmc.io/i/600/w/32bcad665c25cf5fd92c4c51c1be09c5/11264101", "ratings": 1405, "genres": ["post-minimalism", "post-rock"], "explicit": false },
+    { "artist": "Ikd-sj", "album": "死んだ雪白中毒者にキスを I'm Kissin' Dead Snow Junkies", "cover": "https://e.snmc.io/i/600/w/13324d507d9d191daacc6d58a3f59c0e/11607663", "ratings": 390, "genres": ["alternative metal", "avant-garde metal", "noise rock"], "explicit": false },
+    { "artist": "Jordsjø", "album": "Salighet", "cover": "https://e.snmc.io/i/600/w/97bd4036749b703a7c1c2b0f8a816233/11220206", "ratings": 255, "genres": ["symphonic prog", "neo-canterbury", "progressive rock", "progressive folk"], "explicit": false },
+    { "artist": "Cruciamentum", "album": "Obsidian Refractions", "cover": "https://e.snmc.io/i/600/w/ff8f3042f2b583e3738ab262a37b5b96/11315798", "ratings": 766, "genres": ["death metal"], "explicit": false },
+    { "artist": "Oneohtrix Point Never", "album": "Again", "cover": "https://e.snmc.io/i/600/w/5c774295bd1cbe33fed9f0aec0498323/11256981", "ratings": 5700, "genres": ["progressive electronic"], "explicit": false },
+    { "artist": "Genesis Owusu", "album": "Struggler", "cover": "https://e.snmc.io/i/600/w/0a012fe607307169edc5807730220c3b/10984528", "ratings": 5507, "genres": ["post-punk revival", "dance-punk"], "explicit": false },
+    { "artist": "Luge", "album": "I Love It Here, I Live Here", "cover": "https://e.snmc.io/i/600/w/dec98543cb9ca64c0bc9411067f1b653/11304551", "ratings": 281, "genres": ["zolo", "math rock", "experimental rock"], "explicit": false },
+    { "artist": "Flooding", "album": "Silhouette Machine", "cover": "https://e.snmc.io/i/600/w/161e295fdb1498f89830ea015c4d8681/11275267", "ratings": 899, "genres": ["post-hardcore", "slowcore"], "explicit": false },
+    { "artist": "Satanic Warmaster", "album": "Aamongandr", "cover": "https://e.snmc.io/i/600/w/36237e2f25a84b2c98a50e00b6f3347d/10483510", "ratings": 869, "genres": ["black metal"], "explicit": false },
+    { "artist": "Stortregn", "album": "Finitude", "cover": "https://e.snmc.io/i/600/w/d2ba234070b760439cc86403540f1c75/11158618", "ratings": 649, "genres": ["melodic death metal", "technical death metal"], "explicit": false },
+    { "artist": "2 0 2 1", "album": "Like a Paper Plane", "cover": "https://e.snmc.io/i/600/w/cee65bbe316e9125370a1f5c1097cda3/11600129", "ratings": 576, "genres": ["breakbeat", "indietronica"], "explicit": false },
+    { "artist": "Lamp", "album": "一夜のペーソス Dusk to Dawn", "cover": "https://e.snmc.io/i/600/w/5a535c8d6a91315a54a33f5bff01bf02/11398672", "ratings": 2640, "genres": ["shibuya-kei", "jazz pop"], "explicit": false },
+    { "artist": "Thantifaxath", "album": "Hive Mind Narcosis", "cover": "https://e.snmc.io/i/600/w/e323215f144431c51d79b71932e83346/11096227", "ratings": 2385, "genres": ["black metal", "dissonant black metal", "avant-garde metal"], "explicit": false },
+    { "artist": "Moon In June", "album": "ロマンと水色の街 Romance and Soft Blue City", "cover": "https://e.snmc.io/i/600/w/44f764a7bbf7224e378a4a535f80d035/11304344", "ratings": 408, "genres": ["dream pop", "indie pop"], "explicit": false },
+    { "artist": "Nithing", "album": "Agonal Hymns", "cover": "https://e.snmc.io/i/600/w/8e07e131421fe57c9156289ec030839f/11165837", "ratings": 1682, "genres": ["brutal death metal", "technical death metal"], "explicit": false },
+    { "artist": "Kumo 99", "album": "HeadPlate", "cover": "https://e.snmc.io/i/600/w/1ac9583957b353dcdf09c85a0d05f894/11544959", "ratings": 720, "genres": ["breakbeat", "ebm"], "explicit": false },
+    { "artist": "Horrendous", "album": "Ontological Mysterium", "cover": "https://e.snmc.io/i/600/w/447f475e69192d7cd8fc9aef7dc35430/11000901", "ratings": 2351, "genres": ["progressive metal", "death metal", "technical thrash metal"], "explicit": false },
+    { "artist": "Gridlink", "album": "Coronet Juniper", "cover": "https://e.snmc.io/i/600/w/e66860dd4c871a59f9bf9937068f2341/11120515", "ratings": 1894, "genres": ["grindcore"], "explicit": false },
+    { "artist": "Ne Obliviscaris", "album": "Exul", "cover": "https://e.snmc.io/i/600/w/67342a1caaf5f79700c56eb905371a5c/10834997", "ratings": 2378, "genres": ["progressive metal"], "explicit": false },
+    { "artist": "Frankie and The Witch Fingers", "album": "Data Doom", "cover": "https://e.snmc.io/i/600/w/5a0e65ff3ff28383e06069b788ca332c/11058562", "ratings": 659, "genres": ["garage rock", "psychedelic rock", "garage psych"], "explicit": false },
+    { "artist": "Afterbirth", "album": "In but Not Of", "cover": "https://e.snmc.io/i/600/w/3a796b9d3b1ca67e9b12146e804e1eaa/11198725", "ratings": 1275, "genres": ["technical death metal", "progressive metal"], "explicit": false },
+    { "artist": "Paroxysm Unit", "album": "Fragmentation // Stratagem", "cover": "https://e.snmc.io/i/600/w/954f97b0527d679ce604b29d001a0107/10807792", "ratings": 485, "genres": ["brutal death metal", "technical death metal"], "explicit": false },
+    { "artist": "Monika Roscher Bigband", "album": "Witchy Activities and the Maple Death", "cover": "https://e.snmc.io/i/600/w/7106b5c5aeea7848b4b4ef20998238c0/10812961", "ratings": 2450, "genres": ["experimental big band", "avant-prog"], "explicit": false },
+    { "artist": "Sühnopfer", "album": "Nous sommes d'hier", "cover": "https://e.snmc.io/i/600/w/bee391844acec523122031025b78ccda/11284407", "ratings": 508, "genres": ["melodic black metal"], "explicit": false },
+    { "artist": "d.silvestre", "album": "ESPANTA GRINGO", "cover": "https://e.snmc.io/i/600/w/54aea13bca7359e3419d247c93e661c1/11736927", "ratings": 1351, "genres": ["beat bruxaria"], "explicit": false },
+    { "artist": "ищейка [Isheika]", "album": "Я опять не могу проснуться Ya opyat' ne mogu prosnut'sya", "cover": "https://e.snmc.io/i/600/w/fe77acf2bb8e123f83d1cf53e7527dc9/13219435", "ratings": 478, "genres": ["indie rock", "emo"], "explicit": false },
+    { "artist": "Diles Que No Me Maten", "album": "Obrigaggi", "cover": "https://e.snmc.io/i/600/w/b27552fb74d9f2d89ee16c047a454c77/11440440", "ratings": 400, "genres": ["post-rock", "art rock"], "explicit": false },
+    { "artist": "Oromet", "album": "Oromet", "cover": "https://e.snmc.io/i/600/w/83110cf84f95796f33559d67f30fa886/11022264", "ratings": 404, "genres": ["funeral doom metal"], "explicit": false },
+    { "artist": "Ebony Pendant", "album": "Ebony Pendant", "cover": "https://e.snmc.io/i/600/w/20797112e787cc042d2304adbb77296a/11087175", "ratings": 370, "genres": ["black metal"], "explicit": false },
+    { "artist": "LonelyFriendly", "album": "MANIFIE$TO DIVINO", "cover": "https://e.snmc.io/i/600/w/d04faba0393e44ce8a6f16a28af259cb/11139147", "ratings": 335, "genres": ["hexd", "hypnagogic pop", "experimental hip hop"], "explicit": false },
+    { "artist": "David Wojciechowski & Victor Fritzsche", "album": "Gato", "cover": "https://e.snmc.io/i/600/w/bc724248da4a37437c57434f463f49d1/11602838", "ratings": 342, "genres": ["lounge", "digital fusion"], "explicit": false },
+    { "artist": "moreru", "album": "呪詛告白初恋そして世界 Juso Kokuhaku, Hatsukoi, Soshite Sekai", "cover": "https://e.snmc.io/i/600/w/90f94fa8166295a00bdd235e82beda6c/11534784", "ratings": 1197, "genres": ["screamo", "noise rock"], "explicit": false },
+    { "artist": "camiidae", "album": "Music for Bugs", "cover": "https://e.snmc.io/i/600/w/7e06cf23f419a82c4b2008b51d40bcf6/11484811", "ratings": 483, "genres": ["neoclassical new age"], "explicit": false },
+    { "artist": "ずっと真夜中でいいのに。 [Zutto Mayonaka de Ii no ni.]", "album": "沈香学 Jinkougaku", "cover": "https://e.snmc.io/i/600/w/66f85892005d34e9929a711291e8af09/10999177", "ratings": 532, "genres": ["yakousei", "pop rock"], "explicit": false },
+    { "artist": "Night Verses", "album": "Every Sound Has a Color in the Valley of Night: Part 1", "cover": "https://e.snmc.io/i/600/w/62828a90f6bb496b0edb83bbd96de5a6/11243356", "ratings": 531, "genres": ["progressive metal"], "explicit": false },
+    { "artist": "Patricia Taxxon", "album": "TECHDOG 2", "cover": "https://e.snmc.io/i/600/w/312ca355da5d6bca7ffd01d9d9fff9f8/11430005", "ratings": 466, "genres": ["idm"], "explicit": false },
+    { "artist": "Chappell Roan", "album": "The Rise and Fall of a Midwest Princess", "cover": "https://e.snmc.io/i/600/w/832418379c181b36037087952305654c/11193458", "ratings": 13235, "genres": ["dance-pop", "synthpop"], "explicit": false },
+    { "artist": "Wednesday", "album": "Rat Saw God", "cover": "https://e.snmc.io/i/600/w/b4894e92e2977aaeef7c3b142eef2c80/12341560", "ratings": 6883, "genres": ["indie rock", "alt-country", "noise rock"], "explicit": false },
+    { "artist": "Chini.png", "album": "El día libre de Polux", "cover": "https://e.snmc.io/i/600/w/8a65ae6b3a1bebc084c663aaf8a74e8e/11411644", "ratings": 2156, "genres": ["art rock", "dream pop"], "explicit": false },
+    { "artist": "Fabricant", "album": "Drudge to the Thicket", "cover": "https://e.snmc.io/i/600/w/0cf165dbc6124139add9aa6bf52972f6/11414591", "ratings": 575, "genres": ["technical death metal"], "explicit": false },
+    { "artist": "Xoth", "album": "Exogalactic", "cover": "https://e.snmc.io/i/600/w/027facad415dc2262db78647b4807652/11561182", "ratings": 559, "genres": ["technical death metal", "technical thrash metal"], "explicit": false },
+    { "artist": "Cruz Cafuné", "album": "Me muevo con Dios", "cover": "https://e.snmc.io/i/600/w/9c00da3dcfdc5d9a2a047198395132ea/11004897", "ratings": 469, "genres": ["trap"], "explicit": false },
+    { "artist": "Kiryano", "album": "Session", "cover": "https://e.snmc.io/i/600/w/6484026e26ca5d0e0f51da17efe92204/11160578", "ratings": 301, "genres": ["trap", "cloud rap"], "explicit": false },
+    { "artist": "EABS", "album": "In Search of a Better Tomorrow", "cover": "https://e.snmc.io/i/600/w/4d26e3ced7b0c96722a6614fdc5fc3ac/10881669", "ratings": 1322, "genres": ["spiritual jazz", "jazz fusion"], "explicit": false },
+    { "artist": "smokedope2016", "album": "2016", "cover": "https://e.snmc.io/i/600/w/bb25b714644d2418dfc77552ae8a4853/12020331", "ratings": 1098, "genres": ["cloud rap"], "explicit": false },
+    { "artist": "Seven Impale", "album": "SUMMIT", "cover": "https://e.snmc.io/i/600/w/3b47a41d34d9e894733ef746119247b7/11066546", "ratings": 303, "genres": ["progressive rock", "avant-prog"], "explicit": false },
+    { "artist": "Vangas", "album": "Vangas", "cover": "https://e.snmc.io/i/600/w/d4fd353c1533960bb5b71db216fb86d9/12317835", "ratings": 294, "genres": ["noise rock", "experimental rock"], "explicit": false },
+    { "artist": "Home Is Where", "album": "The Whaler", "cover": "https://e.snmc.io/i/600/w/1ece1e35d0048f7d709ac2dffaca0b71/10920753", "ratings": 3748, "genres": ["midwest emo", "post-hardcore"], "explicit": false },
+    { "artist": "ТДК [TDK]", "album": "Nemesta", "cover": "https://e.snmc.io/i/600/w/d905cfad5ce2ae0ba0ed84f608276164/11371888", "ratings": 1210, "genres": ["avant-prog", "avant-garde metal"], "explicit": false },
+    { "artist": "Trna", "album": "Pattern of Infinity", "cover": "https://e.snmc.io/i/600/w/97a3fac77e4a986465e105e2ed899def/11467156", "ratings": 239, "genres": ["blackgaze"], "explicit": false },
+    { "artist": "Trna", "album": "Lose Yourself to Find Peace", "cover": "https://e.snmc.io/i/600/w/2d91093b30cc13c232428f7c9a320c56/6253533", "ratings": 223, "genres": ["blackgaze", "post-metal"], "explicit": false },
+    { "artist": "Trna", "album": "Earthcult", "cover": "https://e.snmc.io/i/600/w/5921a43c705cc2199dec983f5ff46835/6898586", "ratings": 285, "genres": ["blackgaze", "post-metal"], "explicit": false },
+    { "artist": "Trna", "album": "Istok", "cover": "https://e.snmc.io/i/600/w/6b9ae323d559f667c24ee0344ec84b3f/9287175", "ratings": 256, "genres": ["blackgaze"], "explicit": false },
+    { "artist": "thehappymask / A Light in the Dark / Olhava", "album": "Estrangement, Love, Remembrance", "cover": "https://e.snmc.io/i/600/w/b748e7b99936c01bf87e6423be7bdc1c/9986272", "ratings": 26, "genres": ["blackgaze"], "explicit": false },
+    { "artist": "Olhava", "album": "Olhava", "cover": "https://e.snmc.io/i/600/w/3cb889ed2a6fdc2ff2e44928590b38f5/9986268", "ratings": 145, "genres": ["blackgaze"], "explicit": false },
+    { "artist": "Olhava", "album": "Never Leave Me Alone", "cover": "https://e.snmc.io/i/600/w/eab7b27cd146530030dc7b73ac152854/9986267", "ratings": 47, "genres": ["drone", "ambient"], "explicit": false },
+    { "artist": "Olhava", "album": "Ladoga", "cover": "https://e.snmc.io/i/600/w/9b9cbc8e0709fd41fa27ecec5da5f5cb/9986265", "ratings": 643, "genres": ["blackgaze", "atmospheric black metal"], "explicit": false },
+    { "artist": "Olhava", "album": "Frozen Bloom", "cover": "https://e.snmc.io/i/600/w/eb3ee66deb5d6157e83e007fbbfea0a0/9986266", "ratings": 312, "genres": ["blackgaze", "atmospheric black metal", "drone"], "explicit": false },
+    { "artist": "Olhava", "album": "Reborn", "cover": "https://e.snmc.io/i/600/w/05579ace205591d4ba01fbcbf3182b69/9987821", "ratings": 316, "genres": ["blackgaze"], "explicit": false },
+    { "artist": "Olhava", "album": "Sacrifice", "cover": "https://e.snmc.io/i/600/w/4e4efb16bf46b76798ee1015d4b78b4c/11753349", "ratings": 443, "genres": ["blackgaze"], "explicit": false },
+    { "artist": "Andrey Novozhilov", "album": "Existence", "cover": "https://e.snmc.io/i/600/w/e1f4daffe249ae7585d9a0d3a8def194/10956113", "ratings": 5, "genres": ["ambient"], "explicit": false },
+    { "artist": "Andrey Novozhilov", "album": "Monument", "cover": "https://e.snmc.io/i/600/w/065f22486ff8a0fedf8e27658e1d386b/10956111", "ratings": 2, "genres": ["ambient"], "explicit": false },
+    { "artist": "Princ Persii", "album": "Princ Persii", "cover": "https://e.snmc.io/i/600/w/73e68259318d40f2491aa9e9b8de80aa/5163057", "ratings": 17, "genres": ["black metal", "atmospheric sludge metal"], "explicit": false },
+    { "artist": "Isis", "album": "Panopticon", "cover": "https://e.snmc.io/i/600/w/fe32993a2cb5604ae2b7a163355b835f/6523971", "ratings": 14401, "genres": ["atmospheric sludge metal", "post-metal"], "explicit": false },
+    { "artist": "Isis", "album": "Celestial", "cover": "https://e.snmc.io/i/600/w/9974823ac0749726fbe5d9827b277004/1981121", "ratings": 3891, "genres": ["atmospheric sludge metal", "sludge metal"], "explicit": false },
+    { "artist": "Isis", "album": "Oceanic", "cover": "https://e.snmc.io/i/600/w/b0912c99033eb55b5c2d8923ef1e4f1e/3352346", "ratings": 9650, "genres": ["atmospheric sludge metal", "post-metal"], "explicit": false },
+    { "artist": "Isis", "album": "In the Absence of Truth", "cover": "https://e.snmc.io/i/600/w/4b8f37a457651743504513c2f29c4f79/2002009", "ratings": 4574, "genres": ["atmospheric sludge metal", "post-metal"], "explicit": false },
+    { "artist": "Isis", "album": "Wavering Radiant", "cover": "https://e.snmc.io/i/600/w/dfbe012ca8dff0685c095faadd99bd29/2700882", "ratings": 4388, "genres": ["atmospheric sludge metal", "post-metal"], "explicit": false },
+    { "artist": "Gumilinski / Thomas Saves the Day", "album": "Gumilinski / Thomas Saves the Day", "cover": "https://e.snmc.io/i/600/w/db4eb76ebd115517f821bfe38be0748a/3303835", "ratings": 11, "genres": ["screamo", "emoviolence"], "explicit": false },
+    { "artist": "Gumilinski / Топограф! Землемер / CN Roundhouse Kick", "album": "Gumilinski / Топограф! Землемер / CN Roundhouse Kick", "cover": "https://e.snmc.io/i/600/w/281c335117ed33c81fcfcda23c259dc6/3303862", "ratings": 13, "genres": ["post-rock", "screamo", "emoviolence"], "explicit": false },
+    { "artist": "Gumilinski", "album": "Kitsch", "cover": "https://e.snmc.io/i/600/w/faad60c4ad7ca18a5bc52fd9c6e21b5e/12315283", "ratings": 36, "genres": ["screamo"], "explicit": false },
+    { "artist": "Todos Caerán / Gumilinski", "album": "Todos Caeran / Gumilinski", "cover": "https://e.snmc.io/i/600/w/862bc91609f46709653f4682e3ba2650/7525788", "ratings": 9, "genres": ["screamo"], "explicit": false },
+    { "artist": "Vmrrobotic / TURQUOISEDEATH", "album": "Fool's Sanctuary", "cover": "https://e.snmc.io/i/600/w/1672e9eb9098a2fb4d7e9ad50eceb73e/9735781", "ratings": 114, "genres": ["breakcore"], "explicit": false },
+    { "artist": "TURQUOISEDEATH & Vmrrobotic", "album": "Fool's Gold", "cover": "https://e.snmc.io/i/600/w/d4963573301b15aaac14e636d9a73be7/11292404", "ratings": 345, "genres": ["atmospheric drum and bass"], "explicit": false },
+    { "artist": "TURQUOISEDEATH", "album": "Se bueno", "cover": "https://e.snmc.io/i/600/w/4402df48911b92fafe803cc9f6b065af/11161658", "ratings": 2574, "genres": ["atmospheric drum and bass", "jungle"], "explicit": false },
+    { "artist": "TURQUOISEDEATH", "album": "Kaleidoscope", "cover": "https://e.snmc.io/i/600/w/b546c1ae70400bc9e52039375b9c7b7c/12484507", "ratings": 1856, "genres": ["atmospheric drum and bass", "progressive breaks"], "explicit": false },
+    { "artist": "TURQUOISEDEATH", "album": "Guardian", "cover": "https://e.snmc.io/i/600/w/b132095c2632d250621ecdde7e8836a7/13469631", "ratings": 860, "genres": ["atmospheric drum and bass", "progressive breaks"], "explicit": false },
+    { "artist": "Fanfire", "album": "there is nothing admirable", "cover": "https://e.snmc.io/i/600/w/9c79061bfbe69f19ed914837145b6e74/11288005", "ratings": 10, "genres": ["post-rock", "shoegaze"], "explicit": false },
+    { "artist": "Fanfire", "album": "Stop to Glow", "cover": "https://e.snmc.io/i/600/w/3de5095debbf2dbf72a5d92d69d3ce1a/11290990", "ratings": 14, "genres": ["shoegaze", "post-rock"], "explicit": false },
+    { "artist": "se bueno", "album": "clouds", "cover": "https://e.snmc.io/i/600/w/581e0eff92f3f9769921e9d239670c04/10250464", "ratings": 10, "genres": ["post-rock"], "explicit": false },
+    { "artist": "Kanye West", "album": "The College Dropout", "cover": "https://e.snmc.io/i/600/w/1810a1c00bfd7c2d4093a501067e79a8/4096884", "ratings": 68961, "genres": ["chipmunk soul", "pop rap"], "explicit": false },
+    { "artist": "Kanye West", "album": "Late Registration", "cover": "https://e.snmc.io/i/600/w/26c062d0ad96d349f6ae0b9a19d30fd4/6296496", "ratings": 59766, "genres": ["pop rap", "hip hop"], "explicit": false },
+    { "artist": "Kanye West", "album": "Graduation", "cover": "https://e.snmc.io/i/600/w/e7fc1245af4e6467182be8cc9158fedf/7486511", "ratings": 63251, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kanye West", "album": "808s & Heartbreak", "cover": "https://e.snmc.io/i/600/w/6ec2aae51a15eb58404f1ed7d9032b19/7727444", "ratings": 53234, "genres": ["electropop", "synthpop", "art pop", "contemporary r&b"], "explicit": false },
+    { "artist": "Kanye West", "album": "My Beautiful Dark Twisted Fantasy", "cover": "https://e.snmc.io/i/600/w/d24ec02f97afc662d25c395303eb2f7b/6045065", "ratings": 88495, "genres": ["pop rap", "hip hop"], "explicit": false },
+    { "artist": "Jay-Z & Kanye West", "album": "Watch the Throne", "cover": "https://e.snmc.io/i/600/w/b0bbcfee0615b5521ba671784b930238/11289478", "ratings": 32637, "genres": ["pop rap", "hip hop"], "explicit": false },
+    { "artist": "Kanye West", "album": "Yeezus", "cover": "https://e.snmc.io/i/600/w/fe9f4002cc02e2cd6c2684f5766347f8/9558628", "ratings": 69864, "genres": ["experimental hip hop", "industrial hip hop"], "explicit": false },
+    { "artist": "Kanye West", "album": "ye", "cover": "https://e.snmc.io/i/600/w/bb9490e2241f29c6b280474e0d3f274b/7013887", "ratings": 52774, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kanye West", "album": "JESUS IS KING", "cover": "https://e.snmc.io/i/600/w/7eaa1dd68f2498edb8956fc0890f9e22/7927862", "ratings": 40088, "genres": ["christian hip hop", "hip hop"], "explicit": false },
+    { "artist": "Kanye West", "album": "Donda", "cover": "https://e.snmc.io/i/600/w/0cde1d63bc6e1510ad9eba8e89f518f8/9218134", "ratings": 41415, "genres": ["christian hip hop", "experimental hip hop", "pop rap"], "explicit": false },
+    { "artist": "Kanye West", "album": "Donda 2", "cover": "https://e.snmc.io/i/600/w/a042b258baee4e67342484da90642961/13337813", "ratings": 8979, "genres": ["pop rap"], "explicit": false },
+    { "artist": "¥$", "album": "Vultures 2", "cover": "https://e.snmc.io/i/600/w/a71df8e2fd7bf75fd88aa881e3725360/12376731", "ratings": 13213, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kanye West", "album": "Late Orchestration", "cover": "https://e.snmc.io/i/600/w/89a983fe30204bd26339e7f5afd12846/5932311", "ratings": 2629, "genres": ["hip hop", "pop rap"], "explicit": false },
+    { "artist": "Kanye West", "album": "Love Lockdown: Essential 5", "cover": "https://e.snmc.io/i/600/w/2dc8e970695da9d1ba5baaf7a91f3a8a/9189279", "ratings": 83, "genres": ["pop rap", "electropop"], "explicit": false },
+    { "artist": "Kanye West", "album": "Glow in the Dark", "cover": "https://e.snmc.io/i/600/w/b119f65ee52919695dede3f5f97f7fde/8998237", "ratings": 64, "genres": ["orchestral music"], "explicit": false },
+    { "artist": "Kanye West", "album": "Dear Donda", "cover": "https://e.snmc.io/i/600/w/0eaea378b475b159ff7379ef6a23b68a/9001423", "ratings": 455, "genres": ["pop rap"], "explicit": false },
+    { "artist": "King Combs & Ye", "album": "Never Stop", "cover": "https://e.snmc.io/i/600/w/891fab1a4da85f3d79b55a29c7ce960f/13496137", "ratings": 908, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Man on the Moon: The End of Day", "cover": "https://e.snmc.io/i/600/w/7d741570df1e563b4237acb3c2a1c256/11557705", "ratings": 19823, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Man on the Moon II: The Legend of Mr. Rager", "cover": "https://e.snmc.io/i/600/w/ce0d9ce2030f3e8a9be311e992f0a51f/12625539", "ratings": 11405, "genres": ["pop rap", "art pop"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Indicud", "cover": "https://e.snmc.io/i/600/w/98e08178e64b1c95f605eabcf109cacb/4709607", "ratings": 5543, "genres": ["pop rap", "experimental hip hop", "neo-psychedelia"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Kid Cudi Presents Satellite Flight: The Journey to Mother Moon", "cover": "https://e.snmc.io/i/600/w/c8bbbecc086e5f9e721ce65daef618f2/10168109", "ratings": 3445, "genres": ["art pop", "experimental hip hop"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Speedin' Bullet 2 Heaven", "cover": "https://e.snmc.io/i/600/w/386ebb1d02ebeb9b548334ac4e58a9e1/9142685", "ratings": 7649, "genres": ["alternative rock", "grunge"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Passion, Pain & Demon Slayin'", "cover": "https://e.snmc.io/i/600/w/c1d530285aaa37abbca0fde887a44b23/10166743", "ratings": 5468, "genres": ["pop rap", "alternative r&b"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Man on the Moon III: The Chosen", "cover": "https://e.snmc.io/i/600/w/d15814eb578225b13203908f66e1b61f/9304990", "ratings": 10222, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Insano", "cover": "https://e.snmc.io/i/600/w/f8cf2a4a6bf17e1bada7a27d5dc82db8/11752690", "ratings": 3764, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "Insano (Nitro Mega)", "cover": "https://e.snmc.io/i/600/w/f7b69086b6803ca96bd65a2eef76fbd1/11837713", "ratings": 910, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Kid Cudi", "album": "A Kid Named Cudi", "cover": "https://e.snmc.io/i/600/w/c82f9b4a01e50e6f1e5a1b1450ba7df9/2354276", "ratings": 2447, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Bastard", "cover": "https://e.snmc.io/i/600/w/31ab5fa0eb0864946cc6a3a75f23b9d0/3734507", "ratings": 14949, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Goblin", "cover": "https://e.snmc.io/i/600/w/d9bf53b774e5eeab608ef9dc4a15ab0c/10115488", "ratings": 24278, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Wolf", "cover": "https://e.snmc.io/i/600/w/e936b564650c47fdab9eb983c99620a0/10115527", "ratings": 30138, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Cherry Bomb", "cover": "https://e.snmc.io/i/600/w/e79e0ec8f0d23ad4de4441fb1befcc77/7238666", "ratings": 26771, "genres": ["experimental hip hop", "hardcore hip hop"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Flower Boy", "cover": "https://e.snmc.io/i/600/w/ca4e8d07f6c872b272769699e0313cd3/7125159", "ratings": 58963, "genres": ["hip hop", "neo-soul"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Igor", "cover": "https://e.snmc.io/i/600/w/47500e0f64ec50b69a3b021a8d64557f/7574908", "ratings": 74463, "genres": ["neo-soul"], "explicit": false },
+    { "artist": "Tyler, The Creator Gangsta Grillz", "album": "Call Me If You Get Lost", "cover": "https://e.snmc.io/i/600/w/0bf7befff914f00cbfb4b383b6b91da0/9097543", "ratings": 47948, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Chromakopia", "cover": "https://e.snmc.io/i/600/w/4f72767eb2252c3e3f5cdcc1e181ef05/12657343", "ratings": 30828, "genres": ["hip hop", "neo-soul"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Don't Tap the Glass", "cover": "https://e.snmc.io/i/600/w/e177283f3fa7bd9388aeee4e9d66ed7b/13576730", "ratings": 10084, "genres": ["pop rap", "dance"], "explicit": false },
+    { "artist": "Ace", "album": "Eargasm", "cover": "https://e.snmc.io/i/600/w/00aabb7a381eb2ce375f450f431760b3/11190091", "ratings": 91, "genres": ["cloud rap", "instrumental hip hop"], "explicit": false },
+    { "artist": "Ace", "album": "Stereotype", "cover": "https://e.snmc.io/i/600/w/b251ea989d558636afcdd515619ad0e9/12418337", "ratings": 93, "genres": ["instrumental hip hop"], "explicit": false },
+    { "artist": "Tyler, The Creator", "album": "Music Inspired by Illumination & Dr. Seuss' The Grinch", "cover": "https://e.snmc.io/i/600/w/394a88fbd60e83336d87175724acfa58/7236547", "ratings": 4588, "genres": ["christmas music", "neo-soul"], "explicit": false },
+    { "artist": "OFWGKTA", "album": "The OF Tape Vol. 2", "cover": "https://e.snmc.io/i/600/w/fca153b0dfe97be70663063515e8bdfe/7991455", "ratings": 3552, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "OFWGKTA", "album": "The Odd Future Tape", "cover": "https://e.snmc.io/i/600/w/33135d10a6c5e433a383c5735ce27032/3761752", "ratings": 806, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "OFWGKTA", "album": "Radical", "cover": "https://e.snmc.io/i/600/w/aab9d0d3ddb1050859ba996252a47cb4/3215958", "ratings": 1924, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Metallica", "album": "Kill 'Em All", "cover": "https://e.snmc.io/i/600/w/9aa1e5dac4ea7d4ba59df8cbe3c077de/9305324", "ratings": 34093, "genres": ["thrash metal"], "explicit": false },
+    { "artist": "Metallica", "album": "Ride the Lightning", "cover": "https://e.snmc.io/i/600/w/8bb02f881f106ac6c8eee5d470ed8803/10821765", "ratings": 46879, "genres": ["thrash metal"], "explicit": false },
+    { "artist": "Metallica", "album": "Master of Puppets", "cover": "https://e.snmc.io/i/600/w/280060a11fb6a67d6ac86d54f2e83cc6/3986151", "ratings": 49337, "genres": ["thrash metal"], "explicit": false },
+    { "artist": "Metallica", "album": "...And Justice for All", "cover": "https://e.snmc.io/i/600/w/72a5843d6b54d6ef66c68d5a23503e5f/2633953", "ratings": 33862, "genres": ["thrash metal"], "explicit": false },
+    { "artist": "Metallica", "album": "Metallica", "cover": "https://e.snmc.io/i/600/w/1e8b26eb474981bc6410735d7353cd31/5094206", "ratings": 33349, "genres": ["heavy metal"], "explicit": false },
+    { "artist": "Metallica", "album": "Load", "cover": "https://e.snmc.io/i/600/w/8064427e6a8f3182eafd891db7d41337/2509012", "ratings": 16262, "genres": ["hard rock", "heavy metal"], "explicit": false },
+    { "artist": "Metallica", "album": "Reload", "cover": "https://e.snmc.io/i/600/w/0622392e7f41655d1481ce33db6fe328/2716409", "ratings": 14825, "genres": ["hard rock", "heavy metal"], "explicit": false },
+    { "artist": "Metallica", "album": "St. Anger", "cover": "https://e.snmc.io/i/600/w/bdf000142135f7ca05719a5fb837531c/2653258", "ratings": 19300, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "Metallica", "album": "Death Magnetic", "cover": "https://e.snmc.io/i/600/w/a0ef328e8552d1c85ebf7d721d099783/7685176", "ratings": 15734, "genres": ["thrash metal"], "explicit": false },
+    { "artist": "Lou Reed & Metallica", "album": "Lulu", "cover": "https://e.snmc.io/i/600/w/44879401a554ab43244c7d9b19d88d96/10763521", "ratings": 9567, "genres": ["avant-garde metal", "heavy metal"], "explicit": false },
+    { "artist": "Metallica", "album": "Hardwired...to Self-Destruct", "cover": "https://e.snmc.io/i/600/w/6840fd711662054585361f3f8287ca72/8225390", "ratings": 10456, "genres": ["heavy metal"], "explicit": false },
+    { "artist": "Metallica", "album": "72 Seasons", "cover": "https://e.snmc.io/i/600/w/3f94c194939810e5f25de000eb14a2a1/10467236", "ratings": 6983, "genres": ["heavy metal"], "explicit": false },
+    { "artist": "Gord Downie & Bob Rock", "album": "Lustre Parfait", "cover": "https://e.snmc.io/i/600/w/ac5ff1a6054a092ffe4b93d9c21a1622/10667919", "ratings": 31, "genres": ["pop rock"], "explicit": false },
+    { "artist": "Nirvana", "album": "Bleach", "cover": "https://e.snmc.io/i/600/w/c44a1e5c6934b55f93ed72faa3c062d4/2346127", "ratings": 34460, "genres": ["grunge"], "explicit": false },
+    { "artist": "Nirvana", "album": "In Utero", "cover": "https://e.snmc.io/i/600/w/d0f9db0224bacd099db52ce71d8bbb1c/12026991", "ratings": 58388, "genres": ["grunge", "noise rock"], "explicit": false },
+    { "artist": "Nirvana MTV Unplugged", "album": "MTV Unplugged in New York", "cover": "https://e.snmc.io/i/600/w/30b0d64e4a3ca7bc1e50295c3732ef9f/12157780", "ratings": 27392, "genres": ["acoustic rock", "alternative rock"], "explicit": false },
+    { "artist": "Nirvana", "album": "From the Muddy Banks of the Wishkah", "cover": "https://e.snmc.io/i/600/w/ce1fbd2a42db2ff80a8f70d966b38b2a/7748503", "ratings": 4008, "genres": ["grunge", "alternative rock"], "explicit": false },
+    { "artist": "Anywhere", "album": "Anywhere", "cover": "https://e.snmc.io/i/600/w/88c53f4bfc8376801d3eebc369eae8b9/4133192", "ratings": 203, "genres": ["psychedelic folk", "psychedelic rock"], "explicit": false },
+    { "artist": "Anywhere Record Store Day", "album": "Anywhere II", "cover": "https://e.snmc.io/i/600/w/57713938155aae7cbb3bf498f6b37e68/7062401", "ratings": 56, "genres": ["psychedelic folk", "psychedelic rock"], "explicit": false },
+    { "artist": "Fecal Matter", "album": "Illiteracy Will Prevail", "cover": "https://e.snmc.io/i/600/w/9c654145e52aba8be23474fed6d4762f/13407218", "ratings": 591, "genres": ["grunge", "pigfuck", "punk rock"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Clairvoyance", "cover": "https://e.snmc.io/i/600/w/c6cb0984840af0d664a5d3e092a370bc/2682905", "ratings": 653, "genres": ["neo-psychedelia", "garage rock", "garage psych"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Even If and Especially When", "cover": "https://e.snmc.io/i/600/w/ff4468c57a41df69b5f58ef48f53fd79/3061274", "ratings": 615, "genres": ["neo-psychedelia", "psychedelic rock", "grunge"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Invisible Lantern", "cover": "https://e.snmc.io/i/600/w/d8a419f1dec8da8beb0cefbb92aaf84a/3061296", "ratings": 810, "genres": ["neo-psychedelia", "alternative rock"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Buzz Factory", "cover": "https://e.snmc.io/i/600/w/02e5dbce9188ded24f72d0e2fee92159/1976219", "ratings": 864, "genres": ["alternative rock", "grunge"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Uncle Anesthesia", "cover": "https://e.snmc.io/i/600/w/f4692bf3484a29ede42167d88cb7e536/1727741", "ratings": 1372, "genres": ["grunge", "alternative rock"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Sweet Oblivion", "cover": "https://e.snmc.io/i/600/w/df0a32ca3372f38082c2968ed1032671/10000535", "ratings": 3366, "genres": ["grunge"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Dust", "cover": "https://e.snmc.io/i/600/w/5070a5642ba2fa1152b46223e2edef19/10000539", "ratings": 3514, "genres": ["alternative rock", "grunge"], "explicit": false },
+    { "artist": "Screaming Trees", "album": "Last Words: The Final Recordings", "cover": "https://e.snmc.io/i/600/w/fc067377433379ab95decaf4dcba7def/3788476", "ratings": 305, "genres": ["grunge", "alternative rock"], "explicit": false },
+    { "artist": "d.silvestre & MC DENADAI", "album": "A magia proibida", "cover": "https://e.snmc.io/i/600/w/f309da5061d0a1c81aff0e562bda8f57/10197273", "ratings": 166, "genres": ["beat bruxaria"], "explicit": false },
+    { "artist": "d.silvestre", "album": "Dante", "cover": "https://e.snmc.io/i/600/w/bc12a50a6e6922a8831978dab588210b/10849354", "ratings": 130, "genres": ["beat bruxaria"], "explicit": false },
+    { "artist": "d.silvestre", "album": "Vol. 1", "cover": "https://e.snmc.io/i/600/w/8a4b47c18d958eec825ded8ad3b7996e/11005637", "ratings": 142, "genres": ["beat bruxaria"], "explicit": false },
+    { "artist": "d.silvestre", "album": "d.silvestre", "cover": "https://e.snmc.io/i/600/w/99d676f64eed6c36c9ef0eda698ac06e/12306593", "ratings": 701, "genres": ["beat bruxaria"], "explicit": false },
+    { "artist": "d.silvestre", "album": "O que as mulheres querem", "cover": "https://e.snmc.io/i/600/w/db0c03c4c2fa438b9842ff7dc8636b40/13511736", "ratings": 339, "genres": ["beat bruxaria"], "explicit": false },
+    { "artist": "Madonna", "album": "Madonna", "cover": "https://e.snmc.io/i/600/w/d3efb08ed6ae5afed10a807f201ec14f/11290731", "ratings": 8166, "genres": ["dance-pop", "synthpop"], "explicit": false },
+    { "artist": "Madonna", "album": "Like a Virgin", "cover": "https://e.snmc.io/i/600/w/3ba3059c90c49cdd5e7d4a02d95c3053/11290805", "ratings": 6472, "genres": ["dance-pop", "synthpop"], "explicit": false },
+    { "artist": "Madonna", "album": "True Blue", "cover": "https://e.snmc.io/i/600/w/224552f6d0766be5ee6ab356e7cb8462/2726983", "ratings": 6067, "genres": ["synthpop", "dance-pop"], "explicit": false },
+    { "artist": "Madonna", "album": "Like a Prayer", "cover": "https://e.snmc.io/i/600/w/7f2c670d3fd517535718981fe1bd3274/11290775", "ratings": 6474, "genres": ["pop"], "explicit": false },
+    { "artist": "Madonna", "album": "Erotica", "cover": "https://e.snmc.io/i/600/w/8f99ed907f995cf748a6d4fd5e2554e7/5659291", "ratings": 4722, "genres": ["dance-pop", "contemporary r&b", "house"], "explicit": false },
+    { "artist": "Madonna", "album": "Bedtime Stories", "cover": "https://e.snmc.io/i/600/w/63aeafd929966f905fdfa110249086af/9961014", "ratings": 3651, "genres": ["contemporary r&b", "pop", "hip hop soul"], "explicit": false },
+    { "artist": "Madonna", "album": "Ray of Light", "cover": "https://e.snmc.io/i/600/w/5decfd08b02a0437de0669b184ef3b76/6335522", "ratings": 10873, "genres": ["downtempo", "art pop"], "explicit": false },
+    { "artist": "Madonna", "album": "Music", "cover": "https://e.snmc.io/i/600/w/ae709a333a091f8b7769637ca74aaf05/12089489", "ratings": 4457, "genres": ["electropop"], "explicit": false },
+    { "artist": "Madonna", "album": "American Life", "cover": "https://e.snmc.io/i/600/w/687b28ce7500abafa3a4a7aa7f7dfc7c/9088410", "ratings": 3427, "genres": ["electropop"], "explicit": false },
+    { "artist": "Madonna", "album": "Confessions on a Dance Floor", "cover": "https://e.snmc.io/i/600/w/2d5e3d53560974093292565eb442c80b/10188013", "ratings": 6063, "genres": ["dance-pop", "nu-disco"], "explicit": false },
+    { "artist": "Madonna", "album": "Hard Candy", "cover": "https://e.snmc.io/i/600/w/b804fb1060a931aedfd96b7f60ed719e/2225550", "ratings": 2872, "genres": ["dance-pop", "contemporary r&b"], "explicit": false },
+    { "artist": "Madonna", "album": "MDNA", "cover": "https://e.snmc.io/i/600/w/3d486ac245a6fe8b17357529df356f8c/11290906", "ratings": 2352, "genres": ["electropop", "dance-pop"], "explicit": false },
+    { "artist": "Madonna", "album": "Rebel Heart", "cover": "https://e.snmc.io/i/600/w/dd58ab7ad0ebeb3f011b4e0637020931/5586374", "ratings": 2116, "genres": ["electropop", "dance-pop"], "explicit": false },
+    { "artist": "Madonna", "album": "Madame X", "cover": "https://e.snmc.io/i/600/w/0cd1c3e1d032193b55c58577089ce063/12089327", "ratings": 2089, "genres": ["pop", "alt-pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Taylor Swift", "cover": "https://e.snmc.io/i/600/w/33463dae1e107652f6fb9f628c2951a9/10848202", "ratings": 6676, "genres": ["country pop", "teen pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Fearless", "cover": "https://e.snmc.io/i/600/w/200a9c3a3e8dd0b40657c269b55b12e1/2431642", "ratings": 7200, "genres": ["country pop", "pop rock"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Speak Now", "cover": "https://e.snmc.io/i/600/w/99e7890beae2777fe513f79a97f76da9/8845430", "ratings": 7932, "genres": ["pop rock", "singer-songwriter"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Red", "cover": "https://e.snmc.io/i/600/w/b22917ede109bbbe2c49291eaac3b39c/6752931", "ratings": 9933, "genres": ["singer-songwriter", "pop rock"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "1989", "cover": "https://e.snmc.io/i/600/w/5c9e77f1c28525f87308ecf77e200039/11228515", "ratings": 16259, "genres": ["synthpop", "electropop", "dance-pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "reputation", "cover": "https://e.snmc.io/i/600/w/701a8a75a01f90cd51c8fd301b6b11ed/6911839", "ratings": 11409, "genres": ["electropop", "alt-pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Lover", "cover": "https://e.snmc.io/i/600/w/41c9221c98c107cbe0f97c1714aeb351/11472578", "ratings": 10833, "genres": ["synthpop", "electropop", "alt-pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Folklore", "cover": "https://e.snmc.io/i/600/w/7a546b0247137ccd6e1a02ecbabcfc58/11472571", "ratings": 19001, "genres": ["singer-songwriter", "folk pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Evermore", "cover": "https://e.snmc.io/i/600/w/334cc25f6dc39fb5154ea83e16bf7b7b/11472566", "ratings": 12263, "genres": ["singer-songwriter", "folk pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Fearless (Taylor's Version)", "cover": "https://e.snmc.io/i/600/w/6d56accfeecd10de29bd2c781bf69aef/8784356", "ratings": 5449, "genres": ["country pop", "pop rock"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Red (Taylor's Version)", "cover": "https://e.snmc.io/i/600/w/a05626990f42b387e92080329d48939f/9446386", "ratings": 7431, "genres": ["pop rock", "singer-songwriter"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Midnights", "cover": "https://e.snmc.io/i/600/w/5ab2f265fb24a113962c74183bf5b315/10331698", "ratings": 13865, "genres": ["alt-pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "Speak Now (Taylor's Version)", "cover": "https://e.snmc.io/i/600/w/53caed8466e85fe97f7e60e2b7759f3c/10952274", "ratings": 4647, "genres": ["pop rock", "singer-songwriter"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "1989 (Taylor's Version)", "cover": "https://e.snmc.io/i/600/w/4c34ba1c7b247d5fb3f6ac84f8a2c0b6/11345140", "ratings": 4932, "genres": ["synthpop", "dance-pop", "alt-pop"], "explicit": false },
+    { "artist": "Taylor Swift", "album": "The Tortured Poets Department", "cover": "https://e.snmc.io/i/600/w/70098aa3197c9593a9ed0de544ff5548/12031410", "ratings": 11617, "genres": ["alt-pop", "singer-songwriter"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "The Fame", "cover": "https://e.snmc.io/i/600/w/22c895653b1fa608321e72ba897695fe/2366794", "ratings": 10972, "genres": ["dance-pop", "electropop"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "The Fame Monster", "cover": "https://e.snmc.io/i/600/w/1dc718ea7ad0230195477a0a93f7e9cb/8039369", "ratings": 14047, "genres": ["dance-pop", "electropop"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "Born This Way", "cover": "https://e.snmc.io/i/600/w/acace4bfad0ae141c5b94687c6a587b8/10861359", "ratings": 8547, "genres": ["electropop", "dance-pop", "europop"], "explicit": false },
+    { "artist": "Tony Bennett & Lady Gaga", "album": "Cheek to Cheek", "cover": "https://e.snmc.io/i/600/w/61557392d99acbdff510431bcf78f5fe/5414321", "ratings": 1456, "genres": ["vocal jazz", "standards"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "Joanne", "cover": "https://e.snmc.io/i/600/w/04a52e3ec2d11579c508c51c4ef05987/12173968", "ratings": 4726, "genres": ["pop rock"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "Chromatica", "cover": "https://e.snmc.io/i/600/w/c860fa7569b3e97b4f8946b0cac5b890/12175177", "ratings": 7419, "genres": ["dance-pop", "euro house", "diva house"], "explicit": false },
+    { "artist": "Tony Bennett & Lady Gaga", "album": "Love for Sale", "cover": "https://e.snmc.io/i/600/w/34e01a86d4f0fb066dee7fbfee1f1a7b/9212274", "ratings": 803, "genres": ["standards", "vocal jazz"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "Harlequin", "cover": "https://e.snmc.io/i/600/w/5d95e1b50c00372d0a6e34b821c880d7/12544976", "ratings": 1689, "genres": ["traditional pop"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "Mayhem", "cover": "https://e.snmc.io/i/600/w/f22566b7d5866dff0249e8635143d965/12979170", "ratings": 7840, "genres": ["dance-pop", "electropop"], "explicit": false },
+    { "artist": "Nicki Minaj", "album": "Pink Friday", "cover": "https://e.snmc.io/i/600/w/3c569750d3fc513380b81e2faeacf52e/3375979", "ratings": 4038, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Nicki Minaj", "album": "Pink Friday: Roman Reloaded", "cover": "https://e.snmc.io/i/600/w/09c3a7b1330959be3d3f33cdd3a92b69/4296078", "ratings": 2751, "genres": ["pop rap", "electropop", "hardcore hip hop"], "explicit": false },
+    { "artist": "Nicki Minaj", "album": "The Pinkprint", "cover": "https://e.snmc.io/i/600/w/bfc39983abe2f8b2830c31f86f7fcb4d/12692474", "ratings": 3275, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Nicki Minaj", "album": "Pink Friday 2", "cover": "https://e.snmc.io/i/600/w/c0810cf91a6be65f685aad2c09df63c9/11578636", "ratings": 2335, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Travis Scott", "album": "Rodeo", "cover": "https://e.snmc.io/i/600/w/983fc272c682a504d94fc8579b16678f/10832064", "ratings": 35211, "genres": ["trap"], "explicit": false },
+    { "artist": "Travis Scott", "album": "Birds in the Trap Sing McKnight", "cover": "https://e.snmc.io/i/600/w/d8831d42dbf00e96c0279f4bb9e10578/10136840", "ratings": 17610, "genres": ["trap", "pop rap"], "explicit": false },
+    { "artist": "Travis Scott", "album": "Astroworld", "cover": "https://e.snmc.io/i/600/w/1c7db8240f3a95073c29d8bce8691411/11089971", "ratings": 29612, "genres": ["trap", "pop rap"], "explicit": false },
+    { "artist": "Jackboys & Travis Scott", "album": "Jackboys", "cover": "https://e.snmc.io/i/600/w/35150228440ff025a0b89297c1822c5c/10137656", "ratings": 9542, "genres": ["trap", "pop rap"], "explicit": false },
+    { "artist": "Travis Scott", "album": "UTOPIA", "cover": "https://e.snmc.io/i/600/w/8d76157623fe120930c2438ae7ef038d/11177958", "ratings": 22846, "genres": ["experimental hip hop", "trap"], "explicit": false },
+    { "artist": "Jackboys & Travis Scott", "album": "Jackboys 2", "cover": "https://e.snmc.io/i/600/w/978acafc06c127c5dbb5d6c9ffe862d7/13551826", "ratings": 2873, "genres": ["trap"], "explicit": false },
+    { "artist": "Mike Dean", "album": "4:20", "cover": "https://e.snmc.io/i/600/w/0c46078328cac564882732dcaa770082/8129914", "ratings": 307, "genres": ["progressive electronic"], "explicit": false },
+    { "artist": "Mike Dean", "album": "4:22", "cover": "https://e.snmc.io/i/600/w/bed321aabed3d7c6453fd20baa99819e/8960943", "ratings": 109, "genres": ["progressive electronic"], "explicit": false },
+    { "artist": "Mike Dean", "album": "Smoke State 42222", "cover": "https://e.snmc.io/i/600/w/c4a34fad3c4832b96834cac31540ff30/9886575", "ratings": 52, "genres": ["electronic"], "explicit": false },
+    { "artist": "Mike Dean", "album": "4:23", "cover": "https://e.snmc.io/i/600/w/d4582912d204384470812673e8f358bc/10931386", "ratings": 454, "genres": ["synthwave"], "explicit": false },
+    { "artist": "Mike Dean", "album": "424", "cover": "https://e.snmc.io/i/600/w/8357da02e33f0d43044f074dbd63b82d/12274470", "ratings": 126, "genres": ["progressive electronic"], "explicit": false },
+    { "artist": "Mike Dean", "album": "425", "cover": "https://e.snmc.io/i/600/w/9264ca80f8da1e17cc9a6356f7e03726/13281589", "ratings": 114, "genres": ["progressive electronic", "synthwave"], "explicit": false },
+    { "artist": "Scarface", "album": "Mr. Scarface Is Back", "cover": "https://e.snmc.io/i/600/w/b94cefc4ba2c21fbb024fdd5d857d1d0/1338369", "ratings": 1819, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "The World Is Yours", "cover": "https://e.snmc.io/i/600/w/63b6093ff21a63fde96d0ef38d395d25/3044153", "ratings": 733, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "The Diary", "cover": "https://e.snmc.io/i/600/w/b113b82b5b51285f99957c714e3181b3/1210274", "ratings": 4507, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "The Untouchable", "cover": "https://e.snmc.io/i/600/w/ddbafd47776be144cf73272ce59a4794/1455961", "ratings": 657, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "My Homies", "cover": "https://e.snmc.io/i/600/w/758afbfa6607a2c9135da72b7a6b36c6/11844646", "ratings": 262, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "The Last of a Dying Breed", "cover": "https://e.snmc.io/i/600/w/946d75cee7e88f7534a940fcc5c15b01/3802676", "ratings": 407, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "The Fix", "cover": "https://e.snmc.io/i/600/w/6bbb18cd70b18aa3a86aee2a571fa247/7472969", "ratings": 2089, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "Balls and My Word", "cover": "https://e.snmc.io/i/600/w/c6ace9dbad9ecfb2a7949d64637b542f/1455962", "ratings": 208, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface Presents The Product", "album": "One Hunid", "cover": "https://e.snmc.io/i/600/w/c11bed13d39076bdd8acaee95c58f57e/1568896", "ratings": 62, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "My Homies Part 2", "cover": "https://e.snmc.io/i/600/w/9f1289f21978be1e95281d20a2e60cfa/1650184", "ratings": 96, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "Made", "cover": "https://e.snmc.io/i/600/w/5b136d6d0c70524590dded0772643fac/2040258", "ratings": 343, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "Emeritus", "cover": "https://e.snmc.io/i/600/w/fb25092e79502b5529045518af7b634d/2458038", "ratings": 278, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "Deeply Rooted", "cover": "https://e.snmc.io/i/600/w/8f141cc2623a2dec839ae1803d8b52d4/5799156", "ratings": 433, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "Scarface", "album": "Deeply Rooted: The Lost Files", "cover": "https://e.snmc.io/i/600/w/44f6a1ce68069996b5765e3f1157476f/6768443", "ratings": 71, "genres": ["gangsta rap"], "explicit": false },
+    { "artist": "sign crushes motorist", "album": "i'll be okay", "cover": "https://e.snmc.io/i/600/w/2892398d1e1b85461f0c8148b7f58687/10278661", "ratings": 2878, "genres": ["slacker rock", "slowcore"], "explicit": false },
+    { "artist": "sign crushes motorist", "album": "Hurting", "cover": "https://e.snmc.io/i/600/w/21d2aa84fe18851572635f9c155a3120/11065331", "ratings": 598, "genres": ["slowcore"], "explicit": false },
+    { "artist": "sign crushes motorist / KayCyy", "album": "Saddest Truth", "cover": "https://e.snmc.io/i/300/w/1b53cb3112cc4bb9c53a29c8aa458c19/13097048", "ratings": 225, "genres": ["pop rap", "christian hip hop"], "explicit": true },
+    { "artist": "Birth Day", "album": "Boyhood", "cover": "https://e.snmc.io/i/600/w/69de462337978f5d4d5bd35cf55c76cb/10200260", "ratings": 1071, "genres": ["slowcore", "slacker rock"], "explicit": false },
+    { "artist": "busty latinas", "album": "Busty Latinas", "cover": "https://e.snmc.io/i/600/w/5e06a1948cb3a216ec3ac7b74c664869/10480400", "ratings": 52, "genres": ["ambient"], "explicit": false },
+    { "artist": "Carson Clay", "album": "18", "cover": "https://e.snmc.io/i/600/w/6d9676b452ea48b438190966ca22c3c6/11600699", "ratings": 72, "genres": ["trap", "emo rap"], "explicit": false },
+    { "artist": "Dead Calm", "album": "Accept", "cover": "https://e.snmc.io/i/600/w/4b043c0200b171a293c2bc82acad98ef/11364869", "ratings": 243, "genres": ["indie folk"], "explicit": false },
+    { "artist": "Death Trap", "album": "Televisions", "cover": "https://e.snmc.io/i/600/w/7c4ee2404b35a259bfc6d15bf0b0b7ee/10480356", "ratings": 35, "genres": ["slacker rock", "midwest emo"], "explicit": false },
+    { "artist": "hold", "album": "It'll Pass", "cover": "https://e.snmc.io/i/600/w/5f898b6c7946f48e921fc00976574cdf/10480305", "ratings": 145, "genres": ["slowcore", "bedroom pop"], "explicit": false },
+    { "artist": "hold", "album": "Just Give It Time", "cover": "https://e.snmc.io/i/600/w/eeb5e28308af8fcc1d3bd6f321476971/10480311", "ratings": 52, "genres": ["slowcore", "bedroom pop"], "explicit": false },
+    { "artist": "Make His Ribs Show", "album": "Basement Tapes", "cover": "https://e.snmc.io/i/600/w/3d6740bc87c0884b88dbadd1a53f1d1e/10287562", "ratings": 129, "genres": ["slowcore", "slacker rock"], "explicit": false },
+    { "artist": "Make His Ribs Show", "album": "Make His Ribs Show", "cover": "https://e.snmc.io/i/600/w/f46e608381ece55b86e4243443b77328/12914309", "ratings": 85, "genres": ["indie rock"], "explicit": false },
+    { "artist": "Manta", "album": "Nebula", "cover": "https://e.snmc.io/i/600/w/1c7e7ae5d2c2227368191073165cce7b/10775838", "ratings": 42, "genres": ["ambient"], "explicit": false },
+    { "artist": "miserable teens club", "album": "Purgatory", "cover": "https://e.snmc.io/i/600/w/d28e57784881f7027e3c5ca1aa8e6271/10480335", "ratings": 122, "genres": ["slowcore", "ambient"], "explicit": false },
+    { "artist": "Moon Water", "album": "Moon Water - EP", "cover": "https://e.snmc.io/i/600/w/2dd3d0ce91aa86d9d9a9ca60e4340ce8/10480386", "ratings": 42, "genres": ["slowcore", "singer-songwriter"], "explicit": false },
+    { "artist": "roaming", "album": "Roaming", "cover": "https://e.snmc.io/i/600/w/0dc592317fc6af53bfb3d527c8a06a31/10480411", "ratings": 28, "genres": ["dream pop", "slowcore"], "explicit": false },
+    { "artist": "scm48", "album": "Up Right Now", "cover": "https://e.snmc.io/i/600/w/f7568b657ee6764a256f600fa5ca0a4e/12970137", "ratings": 23, "genres": ["ambient", "progressive electronic"], "explicit": false },
+    { "artist": "Take Care", "album": "Agony", "cover": "https://e.snmc.io/i/600/w/bc2b93eb9d12167f112c130b56f99981/10480372", "ratings": 532, "genres": ["slowcore", "slacker rock"], "explicit": false },
+    { "artist": "Take Care", "album": "Reject", "cover": "https://e.snmc.io/i/600/w/ccb65f27862c0edb65e03d3d0258a2e9/10480371", "ratings": 162, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Take Care", "album": "Alive", "cover": "https://e.snmc.io/i/600/w/5a50c6a2e3a89b2c83a0d2afdebfb7f7/10594305", "ratings": 158, "genres": ["slowcore", "indie folk"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Hessdalen Light", "cover": "https://e.snmc.io/i/600/w/7a5aa832a93e0244666446ec1291fb9c/7469007", "ratings": 29, "genres": ["indie pop", "dream pop", "hypnagogic pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Flashbulb Memory", "cover": "https://e.snmc.io/i/600/w/efe3444c34597b8426ac433c8b921ab4/7389245", "ratings": 55, "genres": ["bedroom pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Holograph Tapes Volume 1", "cover": "https://e.snmc.io/i/600/w/d0f8a5872c0bd88cabafec22e247990c/7976552", "ratings": 59, "genres": ["ambient", "tape music"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Kulla Sunset", "cover": "https://e.snmc.io/i/600/w/aad35b20c58f33bfac7817d30219cd27/11666365", "ratings": 64, "genres": ["hypnagogic pop", "indie pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Yellow House", "cover": "https://e.snmc.io/i/600/w/48a6974f4be07f44eb30551775b94025/7220813", "ratings": 105, "genres": ["indie pop", "bedroom pop", "psychedelic pop", "neo-psychedelia"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Far From This World", "cover": "https://e.snmc.io/i/600/w/1cde7cef86d2cefe0733e224e4dfd1e2/8589426", "ratings": 63, "genres": ["indie pop", "dream pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Visitations", "cover": "https://e.snmc.io/i/600/w/372a75648bd1a79597ccbcc67e382d5d/9363177", "ratings": 40, "genres": ["bedroom pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "How Long Will It Take", "cover": "https://e.snmc.io/i/600/w/1a2b538e6b0a474a8dc141e8dc693e07/10419712", "ratings": 53, "genres": ["hypnagogic pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "a field with no edges", "cover": "https://e.snmc.io/i/600/w/847cedc80ef6a3cc1bb0c852665dfa24/11416385", "ratings": 84, "genres": ["ambient", "drone"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "i only remember the good parts", "cover": "https://e.snmc.io/i/600/w/0a17f3147f942fe996e6b5ce124c2e66/12136220", "ratings": 70, "genres": ["slacker rock", "slowcore", "bedroom pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Possession Pact", "cover": "https://e.snmc.io/i/600/w/7c906ab8b91f6cba391524761f66fe45/13285974", "ratings": 30, "genres": ["slowcore"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Some Songs", "cover": "https://e.snmc.io/i/600/w/a3808a2176e8d05485556df5dcc729b4/12440221", "ratings": 9, "genres": ["dream pop", "bedroom pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Grave Spells", "cover": "https://e.snmc.io/i/600/w/989ec01e1c62adefd291678567e8a53b/8938002", "ratings": 9, "genres": ["ambient", "hypnagogic pop"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Light as Leaving", "cover": "https://e.snmc.io/i/600/w/543c2817544cd50e1415ec999d872fb5/7808448", "ratings": 19, "genres": ["dream pop", "jangle pop", "slacker rock"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Long Division", "cover": "https://e.snmc.io/i/600/w/b4eef48d75a97faa0b0269601f0b3564/7957040", "ratings": 24, "genres": ["indie pop", "dream pop", "slacker rock"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "Compositions on Midi and Tape", "cover": "https://e.snmc.io/i/600/w/63a222748828e0ab0889b92a5044c1f8/9596734", "ratings": 38, "genres": ["ambient"], "explicit": false },
+    { "artist": "Orchid Mantis", "album": "there is one place we're all going", "cover": "https://e.snmc.io/i/600/w/f583c8a821d6e527a85697ebdb3646c9/11234924", "ratings": 41, "genres": ["ambient", "slowcore"], "explicit": false },
+    { "artist": "Love Spells", "album": "The Love I Showed You Was Yours to Keep", "cover": "https://e.snmc.io/i/600/w/8b8e8eac727d130363618555b891f871/13378564", "ratings": 42, "genres": ["dream pop"], "explicit": false },
+    { "artist": "Kevin Abstract", "album": "The School Bus Chronicles", "cover": "https://e.snmc.io/i/600/w/36baecd3bdd1434aadc6d8e342f3fd74/6793510", "ratings": 41, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kevin Abstract", "album": "Imagination", "cover": "https://e.snmc.io/i/600/w/dfb5c42bbe8ccf87d94c89fbcfdcf4d4/6240820", "ratings": 27, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kevin Abstract", "album": "MTV1987", "cover": "https://e.snmc.io/i/600/w/e440e507acf835008eae84951abb4f64/10170846", "ratings": 687, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Kevin Abstract", "album": "American Boyfriend: A Suburban Love Story", "cover": "https://e.snmc.io/i/600/w/6fec72384ae14e65138f8273103742b5/12158637", "ratings": 4954, "genres": ["alternative r&b", "art pop", "alt-pop"], "explicit": false },
+    { "artist": "Kevin Abstract", "album": "Arizona Baby", "cover": "https://e.snmc.io/i/600/w/f822139a3448124f94b6422ececa672c/10166738", "ratings": 6420, "genres": ["pop rap", "alternative r&b"], "explicit": false },
+    { "artist": "Kevin Abstract", "album": "Blanket", "cover": "https://e.snmc.io/i/600/w/35bb199998136b8011db96c37bd4bdf2/11464876", "ratings": 2005, "genres": ["indie rock"], "explicit": false },
+    { "artist": "Kevin Abstract", "album": "Blush", "cover": "https://e.snmc.io/i/600/w/d6ea13da9f03e4f8a8e4efb8619ab861/13447667", "ratings": 1946, "genres": ["pop rap"], "explicit": false },
+    { "artist": "AliveSinceForever", "album": "The ASF EP", "cover": "https://e.snmc.io/i/600/w/86d1a49e021554f1dcb64ac19a2930bb/6239636", "ratings": 52, "genres": ["hip hop"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "Saturation", "cover": "https://e.snmc.io/i/600/w/718a6bc2bc24eb3395ef0422d79e82de/7165132", "ratings": 25165, "genres": ["pop rap"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "Saturation II", "cover": "https://e.snmc.io/i/600/w/43b5f1a761336d6c7859a7569999ac8a/7165129", "ratings": 26154, "genres": ["pop rap"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "Saturation III", "cover": "https://e.snmc.io/i/600/w/dba66de33aad698b5430bd7c4c145a20/10560232", "ratings": 24749, "genres": ["pop rap"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "iridescence", "cover": "https://e.snmc.io/i/600/w/9975dd3128e600c5f85e33c72a1228a0/7165077", "ratings": 17443, "genres": ["experimental hip hop", "hardcore hip hop"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "Ginger", "cover": "https://e.snmc.io/i/600/w/f43868e1d444d13a8b29bf05e0b2b08b/10136831", "ratings": 15765, "genres": ["pop rap"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "Roadrunner: New Light, New Machine", "cover": "https://e.snmc.io/i/600/w/02d4185f12eec6725fbcaf4c7ce089ea/9178865", "ratings": 13988, "genres": ["pop rap"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "The Family", "cover": "https://e.snmc.io/i/600/w/d5318d5bf3570abb04d2bacac249e058/10426201", "ratings": 6351, "genres": ["chipmunk soul"], "explicit": false },
+    { "artist": "BROCKHAMPTON", "album": "TM", "cover": "https://e.snmc.io/i/600/w/3415c9970de022d79c2f7255cf9a6c60/10437452", "ratings": 5294, "genres": ["pop rap"], "explicit": false },
+    { "artist": "NOWIFIII", "album": "Memorial Day", "cover": "https://e.snmc.io/i/600/w/6e4b454811d83c69c8088bc74a7902b6/6241749", "ratings": 341, "genres": ["shoegaze"], "explicit": false },
+    { "artist": "IShowSpeed", "album": "Trip 2 Brazil", "cover": "https://e.snmc.io/i/600/w/18ae23a2383e5d2345b1b9bd76318b8b/11933862", "ratings": 973, "genres": ["funk mandelão"], "explicit": false },
+    { "artist": "System of a Down", "album": "System of a Down", "cover": "https://e.snmc.io/i/600/w/c52c8b55f9ef7d7dc71b9b1cc8d76f9c/9123641", "ratings": 22188, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "System of a Down", "album": "Toxicity", "cover": "https://e.snmc.io/i/600/w/d8d317ba2e394ab679ec40004c52377f/5642354", "ratings": 40957, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "System of a Down", "album": "Steal This Album!", "cover": "https://e.snmc.io/i/600/w/35f1b405e235b925541806b151f58fb5/7990365", "ratings": 15701, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "System of a Down", "album": "Mezmerize", "cover": "https://e.snmc.io/i/600/w/67f7ebf72da1f47e646994370069c671/12298609", "ratings": 20677, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "System of a Down", "album": "Hypnotize", "cover": "https://e.snmc.io/i/600/w/f96154510b6ee042b08c3c10b18ce104/2907862", "ratings": 16609, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "System of a Down", "album": "Sugar E.P.", "cover": "https://e.snmc.io/i/600/w/a2c883637014ebdfd6ff9ab3f3b4fc71/4256265", "ratings": 117, "genres": ["alternative metal", "nu metal"], "explicit": false },
+    { "artist": "System of a Down", "album": "Limited Edition Tour CD", "cover": "https://e.snmc.io/i/600/w/3bf58d64885be65f106e55de91e59f4a/3353515", "ratings": 31, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "System of a Down", "album": "Vicinity of Obscenity / Lonely Day EP", "cover": "https://e.snmc.io/i/600/w/55784fd90fa76eacb47bfb1a6acde8c4/3353530", "ratings": 124, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "Scars on Broadway", "album": "Scars on Broadway", "cover": "https://e.snmc.io/i/600/w/89ddd4f9cc071e53532e243600b7d7e3/2299781", "ratings": 1949, "genres": ["alternative metal", "alternative rock"], "explicit": false },
+    { "artist": "Daron Malakian and Scars on Broadway", "album": "Dictator", "cover": "https://e.snmc.io/i/600/w/9256b3311ee7b780017b7029914fcecc/7038180", "ratings": 916, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "Daron Malakian and Scars on Broadway", "album": "Addicted to the Violence", "cover": "https://e.snmc.io/i/600/w/61e3d2d1fa207cd13e60a4d66e1215ec/13424712", "ratings": 199, "genres": ["alternative metal"], "explicit": false },
+    { "artist": "Throbbing Gristle with Albrecht D.", "album": "Music From the Death Factory", "cover": "https://e.snmc.io/i/600/w/0e4f563a9f6c1b3ef9706b7d76890826/6018804", "ratings": 273, "genres": ["industrial", "free improvisation"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "Music From the Death Factory", "cover": "https://e.snmc.io/i/600/w/90c4804ee21457b4c9236086a5ac8077/6027408", "ratings": 138, "genres": ["industrial", "free improvisation"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "The Second Annual Report", "cover": "https://e.snmc.io/i/600/w/9416195df5cc65ef9c2f675969841a5a/10782364", "ratings": 4534, "genres": ["industrial", "free improvisation"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "D.o.A: The Third and Final Report of Throbbing Gristle", "cover": "https://e.snmc.io/i/600/w/a811f1b5f895c4ca94ddfe786114d3d0/6017629", "ratings": 4545, "genres": ["industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "Best Of .... Volume II", "cover": "https://e.snmc.io/i/600/w/19e66373eaf5fea2373c83d74b4d0ff1/6018796", "ratings": 97, "genres": ["industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "20 Jazz Funk Greats", "cover": "https://e.snmc.io/i/600/w/bb38b0a851ae12645a71851b06b2198a/4865617", "ratings": 11135, "genres": ["industrial", "minimal synth"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "Pastimes / Industrial Muzac", "cover": "https://e.snmc.io/i/600/w/9ba8f32804e69fad3a6f3268b45391bb/9944256", "ratings": 131, "genres": ["industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "Journey Through a Body", "cover": "https://e.snmc.io/i/600/w/5a9f101d8a32e0e1cdd3e4eb996e02b5/13348931", "ratings": 690, "genres": ["industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "CD1", "cover": "https://e.snmc.io/i/600/w/f41379c268e5ef2018bf99631dd49b27/11654628", "ratings": 416, "genres": ["industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "Best Of.... Volume I", "cover": "https://e.snmc.io/i/600/w/044cfd7ef9ed4079f813778f32ba5859/3498652", "ratings": 90, "genres": ["industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "TG Now", "cover": "https://e.snmc.io/i/600/w/b4c643d342e0899c94f0b405a24bc7bb/1287411", "ratings": 311, "genres": ["industrial", "post-industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "Part Two: The Endless Not", "cover": "https://e.snmc.io/i/600/w/3d118f63eacc9c0a750c57091063341e/1884576", "ratings": 993, "genres": ["post-industrial", "industrial"], "explicit": false },
+    { "artist": "Throbbing Gristle", "album": "The Third Mind Movements", "cover": "https://e.snmc.io/i/600/w/558beac7628c85bf59bd278e75bf0522/2643715", "ratings": 344, "genres": ["industrial", "electronic", "ambient"], "explicit": false },
+    { "artist": "Carter Tutti", "album": "Cabal", "cover": "https://e.snmc.io/i/600/w/727b74cb434352d961cf800287a2f793/1284635", "ratings": 48, "genres": ["industrial", "minimal synth"], "explicit": false },
+    { "artist": "Carter Tutti", "album": "Feral Vapours of the Silver Ether", "cover": "https://e.snmc.io/i/600/w/65e32a8fe79602377f16ac78208b7439/2073917", "ratings": 72, "genres": ["art pop", "minimal synth"], "explicit": false },
+    { "artist": "Carter Tutti", "album": "Carter Tutti Plays Chris & Cosey", "cover": "https://e.snmc.io/i/600/w/428ee9f888d497df1a17e65b3cbc5f68/5596960", "ratings": 84, "genres": ["synthpop", "minimal synth"], "explicit": false },
+    { "artist": "Carter Tutti Void", "album": "f (x)", "cover": "https://e.snmc.io/i/600/w/8ebd02fd76cf19d30170adbba93f6d1c/5835644", "ratings": 412, "genres": ["industrial"], "explicit": false },
+    { "artist": "Carter Tutti Void", "album": "Triumvirate", "cover": "https://e.snmc.io/i/600/w/2438d2152980f1973041a2375205318b/7584358", "ratings": 221, "genres": ["post-industrial", "industrial", "industrial techno"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Heartbeat", "cover": "https://e.snmc.io/i/600/w/38fcffd8c96b6f613410b8832f5f51bb/1730916", "ratings": 786, "genres": ["minimal wave"], "explicit": false },
+    { "artist": "Chris and Cosey / The Creative Technology Institute", "album": "Trance", "cover": "https://e.snmc.io/i/600/w/bc7f31ef62decbc46f012ae7ddd6ac3a/1252562", "ratings": 700, "genres": ["electronic", "minimal synth", "post-industrial"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Songs of Love & Lust", "cover": "https://e.snmc.io/i/600/w/b9b5eac055c220386d6ce6bb951b4533/12881459", "ratings": 490, "genres": ["synthpop", "minimal wave"], "explicit": false },
+    { "artist": "Chris & Cosey", "album": "Technø Primitiv", "cover": "https://e.snmc.io/i/600/w/e763795eca661d88f1fd25e89f7fe449/1252488", "ratings": 424, "genres": ["synthpop", "minimal wave"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Exotika", "cover": "https://e.snmc.io/i/600/w/1e36847c029d4412f0b2be715c6e2fde/1252558", "ratings": 170, "genres": ["synthpop", "post-industrial"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Allotropy", "cover": "https://e.snmc.io/i/600/w/d4cc7fc5eba562279acf3977f40ce781/1458147", "ratings": 79, "genres": ["ambient", "industrial"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Pagan Tango", "cover": "https://e.snmc.io/i/600/w/ab386d9e4640c29cb199ef4177a46f14/3057736", "ratings": 135, "genres": ["synthpop"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Muzik Fantastique!", "cover": "https://e.snmc.io/i/600/w/ed6ebe438d46818284d46dc2638d6b90/3057749", "ratings": 48, "genres": ["synthpop", "acid house"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Skimble Skamble", "cover": "https://e.snmc.io/i/600/w/93364e4d83d921265f0d650501235419/1463148", "ratings": 32, "genres": ["ambient techno"], "explicit": false },
+    { "artist": "Chris and Cosey", "album": "Trust", "cover": "https://e.snmc.io/i/300/w/d205c8a16e7297ba6e5d5914d38eee0a/12770162", "ratings": 113, "genres": ["post-industrial", "ebm"], "explicit": true },
+    { "artist": "Eminem", "album": "Infinite", "cover": "https://e.snmc.io/i/600/w/11fe66733f020f89742bdb8391339c2b/9982941", "ratings": 4619, "genres": ["boom bap"], "explicit": false },
+    { "artist": "Eminem", "album": "The Slim Shady LP", "cover": "https://e.snmc.io/i/600/w/27bd8470f174c6663456abf903d79aee/8149037", "ratings": 20707, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Eminem", "album": "The Marshall Mathers LP", "cover": "https://e.snmc.io/i/600/w/a937daaf4c10e94b8f55f59c42d17d9f/12929075", "ratings": 27633, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Eminem", "album": "The Eminem Show", "cover": "https://e.snmc.io/i/600/w/e9bd0d4ab370ca5504aa4c7926a0cd36/12096297", "ratings": 19970, "genres": ["hip hop", "hardcore hip hop"], "explicit": false },
+    { "artist": "Eminem", "album": "Encore", "cover": "https://e.snmc.io/i/600/w/69bfe4a7c06853e358a72fb73b768a0c/1311548", "ratings": 12196, "genres": ["hip hop", "pop rap"], "explicit": false },
+    { "artist": "Eminem", "album": "Relapse", "cover": "https://e.snmc.io/i/600/w/51f79a4486c9dc8975f8bd1f6030ad4c/11652218", "ratings": 11471, "genres": ["hip hop", "horrorcore"], "explicit": false },
+    { "artist": "Eminem", "album": "Recovery", "cover": "https://e.snmc.io/i/600/w/a07fc341ab7657b33c5382e845bce14f/3192426", "ratings": 11499, "genres": ["pop rap", "hip hop"], "explicit": false },
+    { "artist": "Eminem", "album": "The Marshall Mathers LP 2", "cover": "https://e.snmc.io/i/600/w/8d2bb5dd3d91ee4ebb9cacb1390b8387/4939926", "ratings": 11310, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Eminem", "album": "Revival", "cover": "https://e.snmc.io/i/600/w/5d3ce7ae62f9f5f2efb05a246de09294/9983582", "ratings": 12396, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Eminem", "album": "Kamikaze", "cover": "https://e.snmc.io/i/600/w/8849e388d0211c8050c0ec05e1e0d71f/7136373", "ratings": 12303, "genres": ["trap", "pop rap", "hardcore hip hop"], "explicit": false },
+    { "artist": "Eminem", "album": "Music to Be Murdered By", "cover": "https://e.snmc.io/i/600/w/7320ec10a21a4e0911f441dd120f8923/7941716", "ratings": 10075, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Eminem", "album": "Music to Be Murdered By: Side B (Deluxe Edition)", "cover": "https://e.snmc.io/i/600/w/0cee1cbabccda6dcb55dee9c53fb5c43/10168142", "ratings": 3681, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Eminem", "album": "The Death of Slim Shady (Coup de Grâce)", "cover": "https://e.snmc.io/i/600/w/d43b579a95b71505298df4a04460312a/12299933", "ratings": 6893, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Lady Gaga", "album": "ARTPOP", "cover": "https://e.snmc.io/i/300/w/ef73141a0d1b1f08f5fdf1ca9c67aab3/4960013", "ratings": 7141, "genres": ["electropop", "dance-pop", "electro house"], "explicit": true },
+    { "artist": "Merzbow", "album": "Pulse Demon", "cover": "https://e.snmc.io/i/600/w/e0317b22f6532069aa0b4c6361e32e07/7755248", "ratings": 9136, "genres": ["harsh noise"], "explicit": false },
+    { "artist": "Merzbow", "album": "Venereology", "cover": "https://e.snmc.io/i/600/w/b8bce99b9c899517f9ff20bfe1eb8240/2741243", "ratings": 4607, "genres": ["harsh noise"], "explicit": false },
+    { "artist": "Boris with Merzbow", "album": "2R0I2P0", "cover": "https://e.snmc.io/i/600/w/97a87a737b918d4bb507af2bf6ec1533/10641058", "ratings": 3937, "genres": ["noise", "post-metal"], "explicit": false },
+    { "artist": "Merzbow", "album": "Merzbeat", "cover": "https://e.snmc.io/i/600/w/5d30dd6cf719c848e31663fc4c6f2d1e/2411290", "ratings": 3667, "genres": ["power noise"], "explicit": false },
+    { "artist": "Full of Hell & Merzbow", "album": "Full of Hell & Merzbow", "cover": "https://e.snmc.io/i/600/w/24f282d78ec416ae4055e6f690233eb9/12315421", "ratings": 3582, "genres": ["grindcore", "noise", "powerviolence"], "explicit": false },
+    { "artist": "Merzbow", "album": "Hybrid Noisebloom", "cover": "https://e.snmc.io/i/600/w/f9306540faf55893f5c638a246241dbc/9127969", "ratings": 3399, "genres": ["harsh noise", "noise"], "explicit": false },
+    { "artist": "Merzbow", "album": "1930", "cover": "https://e.snmc.io/i/600/w/6f7c77b167ee76e39d860da0e0b3539d/2103550", "ratings": 2108, "genres": ["noise"], "explicit": false },
+    { "artist": "Merzbow + Xiu Xiu Record Store Day", "album": "MERZXIU", "cover": "https://e.snmc.io/i/600/w/1671e1b1a432dced8a9ee341238f15dc/5662854", "ratings": 1714, "genres": ["noise", "drone"], "explicit": false },
+    { "artist": "Boris with Merzbow", "album": "現象 Gensho", "cover": "https://e.snmc.io/i/600/w/df3325e1c355b09880f1e2f32753e74a/5988154", "ratings": 1708, "genres": ["drone metal", "noise"], "explicit": false },
+    { "artist": "Boris with Merzbow", "album": "Sun Baked Snow Cave", "cover": "https://e.snmc.io/i/600/w/583416f8ceac9e61861f97b2445026fd/2178664", "ratings": 1258, "genres": ["drone"], "explicit": false },
+    { "artist": "Merzbow", "album": "Flare Gun", "cover": "https://e.snmc.io/i/600/w/91ab2749d8d34ce625f08f9a3b2d1d32/1960006", "ratings": 1176, "genres": ["harsh noise"], "explicit": false },
+    { "artist": "Merzbow", "album": "Tauromachine", "cover": "https://e.snmc.io/i/600/w/58177e330dec84569f54d6195aaeb6e3/9129503", "ratings": 1169, "genres": ["harsh noise"], "explicit": false },
+    { "artist": "Merzbow", "album": "Amlux", "cover": "https://e.snmc.io/i/600/w/268e3a746729d29aa3fea5726f248e63/5448892", "ratings": 1129, "genres": ["noise"], "explicit": false },
+    { "artist": "Merzbow / Keiji Haino / Balázs Pándi", "album": "迷惑をかけない無防備 An Untroublesome Defencelessness", "cover": "https://e.snmc.io/i/600/w/17481e1168adbf9a88e1b858482e8ba6/6088194", "ratings": 1036, "genres": ["free improvisation", "noise rock"], "explicit": false },
+    { "artist": "Boris with Merzbow", "album": "Klatter", "cover": "https://e.snmc.io/i/600/w/58afc04a4cc877164b610ccd00505682/3545213", "ratings": 989, "genres": ["psychedelic rock"], "explicit": false },
+    { "artist": "Merzbow", "album": "Noisembryo", "cover": "https://e.snmc.io/i/600/w/0bc406d5b9b01a0c7c393ac068e57e43/2533311", "ratings": 962, "genres": ["harsh noise"], "explicit": false },
+    { "artist": "Merzbow", "album": "Door Open at 8 AM", "cover": "https://e.snmc.io/i/600/w/8fee35343bc8b3fd33a37591ec5cb63d/2046323", "ratings": 921, "genres": ["noise"], "explicit": false },
+    { "artist": "Merzbow", "album": "Magnesia nova", "cover": "https://e.snmc.io/i/600/w/5ec94292d9de3d3aab6b00df415f67e5/2361945", "ratings": 904, "genres": ["harsh noise"], "explicit": false },
+    { "artist": "Merzbow", "album": "Dharma", "cover": "https://e.snmc.io/i/600/w/63b01ad423b4c7a4fef9b19e12013129/5448897", "ratings": 844, "genres": ["noise"], "explicit": false },
+    { "artist": "Boris with Merzbow", "album": "Megatone", "cover": "https://e.snmc.io/i/600/w/71d3e7aefdb1ccbc72982ca0c98a23dd/2523262", "ratings": 828, "genres": ["noise", "drone"], "explicit": false },
+    { "artist": "Merzbow", "album": "Sedonis", "cover": "https://e.snmc.io/i/600/w/bda96f74b0fa8eb37a6c876eff924fab/13375754", "ratings": 119, "genres": ["harsh noise", "musique concrète"], "explicit": false },
+    { "artist": "Merzbow", "album": "Sporangium", "cover": "https://e.snmc.io/i/600/w/9b48d4e7861c235d16454683f961858c/13227992", "ratings": 2, "genres": ["harsh noise"], "explicit": false },
+    { "artist": "Lil Tecca", "album": "Virgo World", "cover": "https://e.snmc.io/i/600/w/48f38b8903f0c74c3abe153030e1318d/8457012", "ratings": 799, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Lil Tecca", "album": "We Love You Tecca 2", "cover": "https://e.snmc.io/i/600/w/e20192edcd0d0a802ae5020f0f9020e7/9269449", "ratings": 652, "genres": ["trap", "pop rap"], "explicit": false },
+    { "artist": "Lil Tecca", "album": "TEC", "cover": "https://e.snmc.io/i/600/w/6d029717c957cf37d267ca7cb6494057/11312140", "ratings": 1174, "genres": ["trap", "pop rap"], "explicit": false },
+    { "artist": "Lil Tecca", "album": "Plan A", "cover": "https://e.snmc.io/i/600/w/24306b04a7ffd722c3f9c085d007b52f/12530930", "ratings": 838, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Lil Tecca", "album": "Dopamine", "cover": "https://e.snmc.io/i/600/w/b5d69be7ac2b32ea1ec47202e2ec074b/13447827", "ratings": 936, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Lil Tecca", "album": "We Love You Tecca", "cover": "https://e.snmc.io/i/600/w/34857a8c95cc67762041a0550ac5c92d/11233567", "ratings": 1395, "genres": ["trap", "pop rap"], "explicit": false },
+    { "artist": "Bladee", "album": "Eversince", "cover": "https://e.snmc.io/i/600/w/5b483f2502c534c556ce8d4687e8c885/7512410", "ratings": 16845, "genres": ["cloud rap", "emo rap"], "explicit": false },
+    { "artist": "Bladee, Ecco2k & Thaiboy Digital", "album": "D&G", "cover": "https://e.snmc.io/i/600/w/fea8a77fccd970f8b7d83a4fe92127a4/6626426", "ratings": 7745, "genres": ["cloud rap", "alternative r&b", "emo rap"], "explicit": false },
+    { "artist": "Bladee", "album": "Red Light", "cover": "https://e.snmc.io/i/600/w/6b480ae5e704942126ec39eae0eb4132/7014211", "ratings": 11360, "genres": ["cloud rap", "emo rap", "trap"], "explicit": false },
+    { "artist": "Thaiboy Digital, Bladee & Ecco2k", "album": "Trash Island", "cover": "https://e.snmc.io/i/600/w/81f626676d0f3e9e0ca2bceb30ac3724/9049104", "ratings": 11716, "genres": ["cloud rap"], "explicit": false },
+    { "artist": "Bladee", "album": "333", "cover": "https://e.snmc.io/i/600/w/41fe0d5f29400ad6238e45a7d6e56b86/10136845", "ratings": 13269, "genres": ["cloud rap"], "explicit": false },
+    { "artist": "Bladee & Mechatok", "album": "Good Luck", "cover": "https://e.snmc.io/i/600/w/2c22129184672e4e2586ce62c23129e7/9049106", "ratings": 7238, "genres": ["electropop", "dance-pop"], "explicit": false },
+    { "artist": "Bladee", "album": "The Fool", "cover": "https://e.snmc.io/i/600/w/c77595875a2f67fe0972d6517db8ea87/9049057", "ratings": 12844, "genres": ["trap", "cloud rap", "pop rap"], "explicit": false },
+    { "artist": "Bladee & Ecco2k", "album": "Crest", "cover": "https://e.snmc.io/i/600/w/2879d6f5b5d261f9a80d1b7618ca4f43/9800016", "ratings": 18776, "genres": ["synthpop", "art pop"], "explicit": false },
+    { "artist": "Bladee", "album": "Spiderr", "cover": "https://e.snmc.io/i/600/w/6f2823aa6fd85d5016a4566231e62795/10300453", "ratings": 9737, "genres": ["experimental hip hop", "indietronica"], "explicit": false },
+    { "artist": "Yung Lean & Bladee", "album": "Psykos", "cover": "https://e.snmc.io/i/600/w/c6a21cad52dcc620d283d75c6b3ead47/11898257", "ratings": 9262, "genres": ["alternative rock", "post-punk"], "explicit": false },
+    { "artist": "Bladee", "album": "Cold Visions", "cover": "https://e.snmc.io/i/600/w/cf26d663093f51714fd0031d7d02f5f9/12043894", "ratings": 15286, "genres": ["rage", "trap"], "explicit": false },
+    { "artist": "Bladee & Ecco2k", "album": "Remote Utopias: 2nd May 2020", "cover": "https://e.snmc.io/i/600/w/78120da0e1bfbd77cb6b80d1b7021e6f/12266758", "ratings": 1903, "genres": ["cloud rap", "art pop", "alternative r&b"], "explicit": false },
+    { "artist": "Ecco2k", "album": "E", "cover": "https://e.snmc.io/i/600/w/b2b4a79cd3e83149c6f830e4ca0bffc4/9289293", "ratings": 22615, "genres": ["alternative r&b", "art pop"], "explicit": false },
+    { "artist": "Gravity Boys", "album": "GTBSG", "cover": "https://e.snmc.io/i/600/w/1ec3baa69f1c32cb39d45d386a6996d0/4892820", "ratings": 3063, "genres": ["cloud rap", "alternative r&b"], "explicit": false },
+    { "artist": "Yabujin", "album": "Flash Desire", "cover": "https://e.snmc.io/i/600/w/78b7781237556a3d74491b84c95152cf/9589233", "ratings": 5216, "genres": ["cloud rap", "experimental hip hop"], "explicit": false },
+    { "artist": "YABHIEL", "album": "? ? ? ?", "cover": "https://e.snmc.io/i/600/w/0c4d720a2a37720a1bb744f7a5ed2d4b/10333588", "ratings": 773, "genres": ["dark ambient", "experimental", "vapornoise"], "explicit": false },
+    { "artist": "Yabujin", "album": "Fezome", "cover": "https://e.snmc.io/i/600/w/de7ffd9a7bd56fda3aaa3ab20cd25dac/9105472", "ratings": 351, "genres": ["instrumental hip hop", "lo-fi hip hop"], "explicit": false },
+    { "artist": "Yabujin", "album": "She Likes Swords and Doing Drugs 1", "cover": "https://e.snmc.io/i/600/w/7777e23b49cebbeaa2ae7caea6c6bd47/8591582", "ratings": 470, "genres": ["ambient"], "explicit": false },
+    { "artist": "Yabujin", "album": "Baroque", "cover": "https://e.snmc.io/i/600/w/1a313ac31836d06082c0ccde1b4aa91b/8198485", "ratings": 4352, "genres": ["cloud rap", "experimental hip hop"], "explicit": false },
+    { "artist": "Yabujin", "album": "Swords", "cover": "https://e.snmc.io/i/600/w/abcca80d784ba2029c56da598ee8f0d4/9589190", "ratings": 2633, "genres": ["cloud rap", "experimental hip hop"], "explicit": false },
+    { "artist": "Yabujin", "album": "Claws", "cover": "https://e.snmc.io/i/600/w/e9d3bc423a5381410ee019186fed9a89/10282100", "ratings": 1974, "genres": ["electronic", "experimental hip hop", "sigilkore"], "explicit": false },
+    { "artist": "ＹＡ Л O X", "album": "Flash Desire", "cover": "https://e.snmc.io/i/600/w/f253acb616a9d7e543bfa3e6825c0f7a/10531638", "ratings": 427, "genres": ["experimental", "electronic"], "explicit": false },
+    { "artist": "zįęzųĮąşęjąş", "album": "Laumių Dovanos", "cover": "https://e.snmc.io/i/600/w/023a4911319ecfced09925e8e52e7cdf/13500772", "ratings": 166, "genres": ["chamber folk"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "Who Taught You to Hate Yourself?", "cover": "https://e.snmc.io/i/600/w/e91e61960f6ebf8e6827e1ae20aad2d4/6130882", "ratings": 276, "genres": ["conscious hip hop", "jazz rap"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "The Importance of Self Belief", "cover": "https://e.snmc.io/i/600/w/6344fbc18fe8f7929c6ece90be53a45c/6993863", "ratings": 215, "genres": ["conscious hip hop", "jazz rap"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "For My Mama and Anyone Who Look Like Her", "cover": "https://e.snmc.io/i/600/w/8400e159da7eb9de619289d1b8c16cc1/9103462", "ratings": 3347, "genres": ["jazz rap", "conscious hip hop"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "Beloved! Paradise! Jazz!?", "cover": "https://e.snmc.io/i/600/w/cf26c55cd69879fd87f9668d72230227/10775791", "ratings": 11407, "genres": ["jazz rap", "conscious hip hop"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "Magic, Alive!", "cover": "https://e.snmc.io/i/600/w/4dcc1c721c516b3539da7aedf2fde873/13056599", "ratings": 7818, "genres": ["jazz rap", "conscious hip hop"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "Nappy Headed", "cover": "https://e.snmc.io/i/600/w/e1926fb55bb4acef79be0215b4e7b42e/6349577", "ratings": 10, "genres": ["jazz rap", "boom bap"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "Peter Truman", "cover": "https://e.snmc.io/i/600/w/cfdf1ee56bc5eb645b34959d2a3ed533/5447799", "ratings": 14, "genres": ["jazz rap", "boom bap"], "explicit": false },
+    { "artist": "McKinley Dixon", "album": "The House That Got Knocked Down EP", "cover": "https://e.snmc.io/i/600/w/7ef7484c0dc7008eda6ba3fb3d380b32/8017980", "ratings": 50, "genres": ["jazz rap", "neo-soul"], "explicit": false },
+    { "artist": "bl4ck m4rket c4rt", "album": "Today I Laid Down", "cover": "https://e.snmc.io/i/600/w/6852870dbcfcbdad34d3530b7b63da65/11568467", "ratings": 7394, "genres": ["slowcore", "slacker rock"], "explicit": false },
+    { "artist": "Frank Ocean", "album": "Channel Orange", "cover": "https://e.snmc.io/i/600/w/d9ddc1a51993a48db40b721757bb63b8/8060277", "ratings": 45432, "genres": ["alternative r&b", "contemporary r&b"], "explicit": false },
+    { "artist": "Frank Ocean", "album": "Blonde", "cover": "https://e.snmc.io/i/600/w/3bc698315ea2ed723fe714b7dd1f84af/8060362", "ratings": 62376, "genres": ["alternative r&b", "art pop"], "explicit": false },
+    { "artist": "Frank Ocean", "album": "Endless", "cover": "https://e.snmc.io/i/600/w/83eb62ae723f9f1c892786fd26efe08c/10878386", "ratings": 15420, "genres": ["alternative r&b", "art pop", "ambient pop"], "explicit": false },
+    { "artist": "Frank Ocean", "album": "Nostalgia, Ultra.", "cover": "https://e.snmc.io/i/600/w/1e1b359389fcd996d3d8ffb0952f1632/10166669", "ratings": 11523, "genres": ["contemporary r&b", "alternative r&b"], "explicit": false },
+    { "artist": "Hodgy", "album": "Fireplace: TheNotTheOtherSide", "cover": "https://e.snmc.io/i/600/w/06e5c022dceb90567942c88dee0b1967/6323606", "ratings": 334, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Jerry", "album": "lovemesooner", "cover": "https://e.snmc.io/i/600/w/7e6e058c30db4ef68e219e4428e8e844/11806025", "ratings": 29, "genres": ["singer-songwriter", "indie folk"], "explicit": false },
+    { "artist": "Jerry", "album": "No Receipt", "cover": "https://e.snmc.io/i/600/w/27482f952ec27713cf25e8083e786083/12371231", "ratings": 8, "genres": ["singer-songwriter", "indie folk", "emo rap"], "explicit": false },
+    { "artist": "LNDN DRGS & Left Brain", "album": "Brain on DRGS", "cover": "https://e.snmc.io/i/600/w/c9058c28d4d3d4bcddeecf580ce19b17/7239835", "ratings": 50, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Sahtyre & Left Brain", "album": "Gone Folder 22", "cover": "https://e.snmc.io/i/600/w/563effc0456abb98718da6fcc45dc169/10398906", "ratings": 9, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Left Brain", "album": "Mind Gone Vol. 1", "cover": "https://e.snmc.io/i/600/w/ee2b35166c8be78e18d1ad03a117d654/6505979", "ratings": 22, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Left Brain", "album": "Mind Gone, Vol. 2: Gone, Never Forgotten", "cover": "https://e.snmc.io/i/600/w/33e8446fcc62b9f1f103d1f50cc9a0c1/7073194", "ratings": 28, "genres": ["trap"], "explicit": false },
+    { "artist": "Left Brain", "album": "LEFT/BRAIN/BEAT/TAPE/1stEdition", "cover": "https://e.snmc.io/i/600/w/8b4ce30f8b9132e0237457b23895c9d5/12586589", "ratings": 2, "genres": ["instrumental hip hop"], "explicit": false },
+    { "artist": "Hodgy", "album": "The Dena Tape", "cover": "https://e.snmc.io/i/600/w/e324b82280339362eaa121bcce2a0c5f/3215972", "ratings": 201, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Hodgy & Don Cannon", "album": "Dena Tape 2", "cover": "https://e.snmc.io/i/600/w/4ea775b94413e247fe27c4aa226b847b/5573920", "ratings": 58, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Hodgy", "album": "Dukkha", "cover": "https://e.snmc.io/i/600/w/745993738a605e99f71270c153bd449f/6232756", "ratings": 39, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Hodgy", "album": "Untitled EP", "cover": "https://e.snmc.io/i/600/w/490547e39a6677c5e90db20b3232718f/4095343", "ratings": 349, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Hodgy", "album": "Untitled EP 2", "cover": "https://e.snmc.io/i/600/w/179e64d0f8c246c98b0e490c7cbd68bd/4799883", "ratings": 177, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Hodgy", "album": "Entitled", "cover": "https://e.snmc.io/i/600/w/b6b61780283603eacb330067c729bec3/9963541", "ratings": 73, "genres": ["trap"], "explicit": false },
+    { "artist": "Matt Martians", "album": "The Drum Chord Theory", "cover": "https://e.snmc.io/i/600/w/a218fe6a07473b0ce87ad11403612a59/6387504", "ratings": 484, "genres": ["neo-soul", "alternative r&b"], "explicit": false },
+    { "artist": "Matt Martians", "album": "The Last Party", "cover": "https://e.snmc.io/i/600/w/6246a2721f7272f0413145339f2f7066/7485655", "ratings": 248, "genres": ["neo-soul"], "explicit": false },
+    { "artist": "Matt Martians", "album": "Going Normal", "cover": "https://e.snmc.io/i/600/w/0d723173e9009fd8a1ff596859b6339e/8927073", "ratings": 122, "genres": ["neo-soul", "neo-psychedelia"], "explicit": false },
+    { "artist": "Matt Martians", "album": "Matt's Missing", "cover": "https://e.snmc.io/i/600/w/b3431cb41e6f03812d4b962cee4187dc/11690994", "ratings": 125, "genres": ["neo-soul", "psychedelic soul"], "explicit": false },
+    { "artist": "Syd", "album": "Fin", "cover": "https://e.snmc.io/i/600/w/f2abb679104996a91504311c5c2c0270/6407925", "ratings": 1267, "genres": ["alternative r&b", "trap soul"], "explicit": false },
+    { "artist": "Syd", "album": "Broken Hearts Club", "cover": "https://e.snmc.io/i/600/w/a607af0f9586f432aadbda9e1ad78e2b/9850154", "ratings": 518, "genres": ["alternative r&b"], "explicit": false },
+    { "artist": "Syd", "album": "Raunchboots", "cover": "https://e.snmc.io/i/600/w/963f9809d9542301ad4f7b38ebbdfc68/4220319", "ratings": 23, "genres": ["instrumental hip hop"], "explicit": false },
+    { "artist": "Syd", "album": "Always Never Home", "cover": "https://e.snmc.io/i/600/w/001b8b17f4d4bd426e9c9ab28642729c/6660424", "ratings": 159, "genres": ["alternative r&b"], "explicit": false },
+    { "artist": "Matt Martians", "album": "Butterfly Don't Visit Caterpillar", "cover": "https://e.snmc.io/i/600/w/bf406d45fbb8d1c24c4dc3f9541589df/9526804", "ratings": 44, "genres": ["neo-soul", "neo-psychedelia"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Sleeping in Class", "cover": "https://e.snmc.io/i/600/w/c497988a8d8fbaa4d3e0261b37cf4d26/3467463", "ratings": 160, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Live & Grow", "cover": "https://e.snmc.io/i/600/w/f4a16be9ef99eb15b172d89bc8ce173a/5772638", "ratings": 153, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Organic", "cover": "https://e.snmc.io/i/600/w/8e0ad0c3469e55c29367fb1406823b6c/7554978", "ratings": 65, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies & Rockie Fresh", "album": "Fresh Veggies 2", "cover": "https://e.snmc.io/i/600/w/4841da2cd61cc4ea1f7ab7250c5b6cc2/8299967", "ratings": 29, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Crypto Veggies", "cover": "https://e.snmc.io/i/600/w/5c7292129529d1a538ce2a68ad407cdf/10115913", "ratings": 19, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Casey Veggies & Dylvinci", "album": "Nostalgia", "cover": "https://e.snmc.io/i/600/w/04ee7bc7ed768117732168c4da91dc80/11834026", "ratings": 33, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Caught Up in the Game", "cover": "https://e.snmc.io/i/600/w/1a886f4e3312b112b4633fabd012249c/12839308", "ratings": 10, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Customized Greatly Vol. 1", "cover": "https://e.snmc.io/i/600/w/50aad2a6b0e3f18815f464004e2406ff/3260620", "ratings": 38, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Customized Greatly Vol. 2", "cover": "https://e.snmc.io/i/600/w/41fcfab4d6c8904de76734ffa7dab5dd/3260631", "ratings": 31, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies & Rich Hil", "album": "Bum Shit", "cover": "https://e.snmc.io/i/600/w/dd07f7d0e652d2d1d37977795983a262/3260635", "ratings": 8, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Customized Greatly Vol. 3", "cover": "https://e.snmc.io/i/600/w/f44f4d747cf952fad25abf2b36eb93b5/4160109", "ratings": 69, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Life Changes", "cover": "https://e.snmc.io/i/600/w/9469d7bafa178ac033a1a0bdcd43f1d3/4608308", "ratings": 139, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies & Rockie Fresh", "album": "Fresh Veggies", "cover": "https://e.snmc.io/i/600/w/fc5d901bfac81f3fddcbc9ea770b5e3e/5041643", "ratings": 61, "genres": ["trap"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "Customized Greatly 4", "cover": "https://e.snmc.io/i/600/w/7cff5f3fbcfcebe287ea73397c194f39/6126726", "ratings": 30, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Casey Veggies", "album": "CG5", "cover": "https://e.snmc.io/i/600/w/a85071339b3e64ab5834ca2793c5ddb0/8821143", "ratings": 30, "genres": ["trap"], "explicit": false },
+    { "artist": "Futuristiks & Casey Veggies", "album": "Ten Toes Down", "cover": "https://e.snmc.io/i/600/w/13702f466885ad475302e5275f35b114/10969220", "ratings": 11, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Ace Hashimoto", "album": "Play. Make. Believe", "cover": "https://e.snmc.io/i/600/w/3b06bbe97e64719b3312d82c54aac961/9025562", "ratings": 21, "genres": ["contemporary r&b", "neo-soul"], "explicit": false },
+    { "artist": "brandUn DeShay", "album": "Volume: One! for the Money", "cover": "https://e.snmc.io/i/600/w/dfa3b7fa78e668908878456c78a0bab5/3266754", "ratings": 44, "genres": ["hip hop"], "explicit": false },
+    { "artist": "brandUn DeShay", "album": "Volume: Two! for the Show", "cover": "https://e.snmc.io/i/600/w/b1152ac4ae8a4ab47caf9f51ace8c5b3/9254957", "ratings": 16, "genres": ["hip hop"], "explicit": false },
+    { "artist": "brandUn DeShay", "album": "Your Favorite! Mixtape", "cover": "https://e.snmc.io/i/600/w/351420cf59ab2a1c58bc94b1d3521adb/3266774", "ratings": 3, "genres": ["hip hop"], "explicit": false },
+    { "artist": "brandUn DeShay", "album": "Volume: Three! to Get Ready", "cover": "https://e.snmc.io/i/600/w/030f9fbb715779aa5657eac6949e053a/3266756", "ratings": 14, "genres": ["hip hop"], "explicit": false },
+    { "artist": "brandUn DeShay", "album": "All Day DeShay: AM", "cover": "https://e.snmc.io/i/600/w/ec9e4a9994f8f209f88855e4f32254ea/3990250", "ratings": 21, "genres": ["hip hop"], "explicit": false },
+    { "artist": "brandUn DeShay", "album": "Goldun Child", "cover": "https://e.snmc.io/i/600/w/95e969d40c61a575b967b2afa7d3977a/5916422", "ratings": 21, "genres": ["trap", "cloud rap"], "explicit": false },
+    { "artist": "brandUn DeShay", "album": "goldUn Child: 2", "cover": "https://e.snmc.io/i/600/w/9dbf06331dab7b9229e64aee6996de2c/8725099", "ratings": 7, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "brandUn DeShay & The Super 3", "album": "The Super D3shay EP", "cover": "https://e.snmc.io/i/600/w/2c3dbc5f6c2265d8ae90a4fdda394dc6/3266751", "ratings": 19, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "The Story of Marsha Lotus", "cover": "https://e.snmc.io/i/600/w/065524b02b6190b6258a2d7bf88a0683/4133315", "ratings": 23, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "Pyramidvritra", "cover": "https://e.snmc.io/i/600/w/320d2b185f7ea9594dccd4d23656b863/4212106", "ratings": 20, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "Pyramid", "cover": "https://e.snmc.io/i/600/w/dcd83d6efcf4274821b840ab9eaba77e/4318305", "ratings": 50, "genres": ["experimental hip hop", "instrumental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "(Instrumentals: PV)", "cover": "https://e.snmc.io/i/600/w/523ed28046323701de028f09b72168a8/5986783", "ratings": 2, "genres": ["instrumental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "(Instrumentals: PV)", "cover": "https://e.snmc.io/i/600/w/523ed28046323701de028f09b72168a8/5986783", "ratings": 2, "genres": ["instrumental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "Indra", "cover": "https://e.snmc.io/i/600/w/146c0c164b930eccd83d28902db20dab/6193267", "ratings": 47, "genres": ["experimental hip hop", "cloud rap", "abstract hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "Dānu", "cover": "https://e.snmc.io/i/600/w/6730e60b6ce5ee5d92a059622c617230/5667171", "ratings": 39, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Vritra", "album": "Hal", "cover": "https://e.snmc.io/i/600/w/9a0b3745bec05ab9f2ebf1c10afad810/6682229", "ratings": 10, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "Wilma Vritra", "album": "Burd", "cover": "https://e.snmc.io/i/600/w/a14b8cf3225c1899afa70bcf899cc986/7606949", "ratings": 646, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Vritra", "album": "F E M M E", "cover": "https://e.snmc.io/i/600/w/8da1fb5d1abc71e394433ad7946b3641/7464742", "ratings": 29, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Vritra", "album": "Sonar", "cover": "https://e.snmc.io/i/600/w/fa92a8ac9539afa4901de09b83391148/8370287", "ratings": 64, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Wilma Vritra", "album": "Grotto", "cover": "https://e.snmc.io/i/600/w/f2732e568004935e5dd2cfa39c756a74/9755979", "ratings": 442, "genres": ["abstract hip hop", "experimental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "SNAKESS", "cover": "https://e.snmc.io/i/600/w/4d0f017c887e73124c94c2424382c077/10467490", "ratings": 6, "genres": ["experimental hip hop", "cloud rap"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "Amber", "cover": "https://e.snmc.io/i/600/w/ed2a31b3739f9860606961bd1f84f8cc/11833621", "ratings": 33, "genres": ["cloud rap"], "explicit": false },
+    { "artist": "donellvritrajet", "album": "paint.", "cover": "https://e.snmc.io/i/600/w/df114d14d79b4c48bc48a7b4cc90bca4/9977197", "ratings": 1, "genres": ["instrumental hip hop"], "explicit": false },
+    { "artist": "Δ", "album": "Eloise EP", "cover": "https://e.snmc.io/i/600/w/057869c5ea944b31e241c02f49ba6bec/9976473", "ratings": 3, "genres": ["acid jazz", "hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "Scopolomine", "cover": "https://e.snmc.io/i/600/w/44f725627f7e725dac807ef5c1878926/9976417", "ratings": 1, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "Big Ralph's Midnight Pink River Weather Grey", "cover": "https://e.snmc.io/i/600/w/53e345de4cf7d6db0d67e5f8def3b948/4926077", "ratings": 15, "genres": ["cloud rap", "instrumental hip hop"], "explicit": false },
+    { "artist": "Pyramid Vritra", "album": "PV4", "cover": "https://e.snmc.io/i/600/w/840aaf23d98019301b866361264f2d2c/5986793", "ratings": 8, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "Vritra + Eyedress", "album": "They Only Love You When You Love You", "cover": "https://e.snmc.io/i/600/w/ba9ed03ac6566a8276f1e6a24128dbc8/10052189", "ratings": 6, "genres": ["hip hop"], "explicit": false },
+    { "artist": "72Demons & Vritra", "album": "Fitness P1", "cover": "https://e.snmc.io/i/600/w/485eb9805796a40f9d25e00a512162ca/11099278", "ratings": 0, "genres": ["instrumental hip hop"], "explicit": false },
+    { "artist": "Domo Genesis", "album": "Rolling Papers", "cover": "https://e.snmc.io/i/600/w/b4ce85771683f2a218948137f55fb532/3305339", "ratings": 616, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Domo Genesis", "album": "Genesis", "cover": "https://e.snmc.io/i/600/w/765fe079de220b57c1fc736dad9a9a4a/6049699", "ratings": 1083, "genres": ["jazz rap"], "explicit": false },
+    { "artist": "Domo Genesis & Evidence", "album": "Intros, Outros & Interludes", "cover": "https://e.snmc.io/i/600/w/41f98a96032c1394623d515534df9848/10183814", "ratings": 579, "genres": ["drumless"], "explicit": false },
+    { "artist": "Domo Genesis & Graymatter", "album": "What You Don’t Get?!", "cover": "https://e.snmc.io/i/600/w/d80e2f746b5f638c7aba4e6d9775becd/11448621", "ratings": 212, "genres": ["drumless"], "explicit": false },
+    { "artist": "Domo Genesis", "album": "Under the Influence", "cover": "https://e.snmc.io/i/600/w/75baaea741633ef19946cbbda000209d/3883047", "ratings": 230, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Domo Genesis & Alchemist", "album": "No Idols", "cover": "https://e.snmc.io/i/600/w/8e86dca8665e92e2d6297885b47e7b18/4309689", "ratings": 2409, "genres": ["hardcore hip hop"], "explicit": false },
+    { "artist": "Domo Genesis", "album": "Under the Influence 2", "cover": "https://e.snmc.io/i/600/w/76ffe560d95b3a382af5255ed32cd7ae/5465490", "ratings": 89, "genres": ["boom bap"], "explicit": false },
+    { "artist": "Domo Genesis", "album": "Red Corolla", "cover": "https://e.snmc.io/i/600/w/6eb37f2213112c3bfed64309e40eebbd/8303453", "ratings": 284, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Domo Genesis", "album": "Aren't U Glad You're U", "cover": "https://e.snmc.io/i/600/w/2cc96a2d8dcdfa6352e1e4e05858da9c/6834981", "ratings": 239, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Domo Genesis", "album": "Facade Records", "cover": "https://e.snmc.io/i/600/w/69d09f30eae46f427b79e617f7eac46e/7256128", "ratings": 225, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Domo Genesis & Mike & Keys", "album": "Just in Case", "cover": "https://e.snmc.io/i/600/w/c3ac02c005c19c57e649b5cceeff3487/8304040", "ratings": 38, "genres": ["jazz rap"], "explicit": false },
+    { "artist": "Domo Genesis & Mike & Keys", "album": "Just in Case 2", "cover": "https://e.snmc.io/i/600/w/a1d1ba252ffbdb6f0ed63706e3a803b5/8374190", "ratings": 37, "genres": ["jazz rap"], "explicit": false },
+    { "artist": "Domo Genesis & Graymatter", "album": "World Class Trouble Solvers", "cover": "https://e.snmc.io/i/600/w/6c5b7dad20009bac30782b7ee38f3a19/11018853", "ratings": 38, "genres": ["drumless"], "explicit": false },
+    { "artist": "Mike G", "album": "Bastard: Chopped and Screwed", "cover": "https://e.snmc.io/i/600/w/8935c79954cebe2119192d5e0dfdf81d/3267421", "ratings": 33, "genres": ["chopped and screwed", "hardcore hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Ali", "cover": "https://e.snmc.io/i/600/w/08e0cb5c1d25cbfa35b54b5e93df82d1/3215965", "ratings": 410, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Exile", "cover": "https://e.snmc.io/i/600/w/c7cb007be8d3306d4bc757e1a1c4a952/7698500", "ratings": 26, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Mike Check: The Preshow", "cover": "https://e.snmc.io/i/600/w/6376c366d8c34b731e99b57bac842d36/3261107", "ratings": 0, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Mike Check", "cover": "https://e.snmc.io/i/600/w/49a6ec80ad53f243e56e3df81dc6bc5f/3261102", "ratings": 28, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "White Ice", "cover": "https://e.snmc.io/i/600/w/fac159d330d008c6dcb6e77f2b55f06f/12329575", "ratings": 0, "genres": ["chopped and screwed"], "explicit": false },
+    { "artist": "Mike G", "album": "Verses", "cover": "https://e.snmc.io/i/600/w/ff816415443400202e2d7dd43a7197ed/4732990", "ratings": 21, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Mike Check Volume II", "cover": "https://e.snmc.io/i/600/w/f2d47c356304bb2c65883506b94f7b4f/6503657", "ratings": 12, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Award Tour EP", "cover": "https://e.snmc.io/i/600/w/1adb14f3d7a451849702308415554324/3972590", "ratings": 70, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Award Tour II", "cover": "https://e.snmc.io/i/600/w/07a5a8fc01117205e97cfade15804b92/5564765", "ratings": 42, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Mike G", "album": "Verses EP", "cover": "https://e.snmc.io/i/600/w/cf4125fd42321014429c04478d4c2a45/5925251", "ratings": 27, "genres": ["cloud rap"], "explicit": false },
+    { "artist": "Mike G", "album": "Chase Clouds", "cover": "https://e.snmc.io/i/600/w/579ee976b0dd2bcbe74b7ad7ab7cd1f1/7527379", "ratings": 14, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "Earl", "cover": "https://e.snmc.io/i/600/w/665ab9e425615561679e15a8e80e079c/10189524", "ratings": 9394, "genres": ["horrorcore", "hardcore hip hop"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "Doris", "cover": "https://e.snmc.io/i/600/w/0e67c521050c4482d3e4503d23bfee53/7851404", "ratings": 21112, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "I Don't Like Shit, I Don't Go Outside", "cover": "https://e.snmc.io/i/600/w/41e5efd9066aa604596330f1dbcc132f/11077150", "ratings": 22807, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "Some Rap Songs", "cover": "https://e.snmc.io/i/600/w/7ae78ca3a0a2843fd273ecd290f20786/9634567", "ratings": 38754, "genres": ["abstract hip hop", "experimental hip hop", "drumless"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "SICK!", "cover": "https://e.snmc.io/i/600/w/c99ad2ba4b8c6c692d3db3208945ad92/9544041", "ratings": 16356, "genres": ["abstract hip hop"], "explicit": false },
+    { "artist": "Earl Sweatshirt & The Alchemist", "album": "Voir Dire", "cover": "https://e.snmc.io/i/600/w/8797ed127919218b89059c72ed0364c6/11461157", "ratings": 11278, "genres": ["abstract hip hop", "drumless"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "Earl Sweatshirt", "cover": "https://e.snmc.io/i/600/w/917bf36b6d70f154818911a0f21d3f96/7470933", "ratings": 158, "genres": ["hip hop"], "explicit": false },
+    { "artist": "dar Qness", "album": "Solace", "cover": "https://e.snmc.io/i/600/w/991c78fdec8832dcffda79e39f652b4b/11252032", "ratings": 13972, "genres": ["experimental hip hop", "abstract hip hop", "drumless"], "explicit": false },
+    { "artist": "Earl Sweatshirt", "album": "Feet of Clay", "cover": "https://e.snmc.io/i/600/w/204bd9b61568c7dda7ddc3f75e057134/9189196", "ratings": 10621, "genres": ["abstract hip hop", "experimental hip hop", "drumless"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "Twothousand Nakteen", "cover": "https://e.snmc.io/i/600/w/9bbb52c2e746e7bb95d5ab7f6c25c2ff/7537502", "ratings": 220, "genres": ["trap", "hardcore hip hop"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "3000Nakteen", "cover": "https://e.snmc.io/i/600/w/039860a4e64df92a01428d25d884f6d1/7791973", "ratings": 60, "genres": ["trap"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "A Dream No Longer Deferred", "cover": "https://e.snmc.io/i/600/w/910c15b62ca223bcb8213a31f96d09d5/8855206", "ratings": 34, "genres": ["trap", "hardcore hip hop"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "Skullface Bonehead", "cover": "https://e.snmc.io/i/600/w/04364fa489b6b6771f39bfe449c8bbeb/9661183", "ratings": 205, "genres": ["cloud rap"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "+", "cover": "https://e.snmc.io/i/600/w/68bc4df0048ef5b92530aad6d2e8a698/9733953", "ratings": 81, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "+ + Mix2 -_-", "cover": "https://e.snmc.io/i/600/w/a2ffbbd994367cf3c9d90edfcb7e9ca3/9775777", "ratings": 38, "genres": ["chopped and screwed", "plugg", "experimental hip hop"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "Hml.MX 3d", "cover": "https://e.snmc.io/i/600/w/546e8fb6065a298eecee37ba3212a9a7/9775770", "ratings": 41, "genres": ["experimental hip hop", "plugg"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "Racecarstuntman222", "cover": "https://e.snmc.io/i/600/w/4718dcc362b3f410177191c745df796c/10622126", "ratings": 67, "genres": ["experimental hip hop", "trap"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "Trippin Til They Free My Pops", "cover": "https://e.snmc.io/i/600/w/43e123a0713f888eeff5e05f60b64e49/10601233", "ratings": 25, "genres": ["experimental hip hop", "trap"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "Stand Alone Stuntman", "cover": "https://e.snmc.io/i/600/w/5b2c609341b2b290249a39b4a3ea8ba7/11492489", "ratings": 30, "genres": ["experimental hip hop", "trap"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "Racecarstuntman", "cover": "https://e.snmc.io/i/600/w/16bb00492c9c8fc7a7617c2067523f6d/9294756", "ratings": 38, "genres": ["trap", "experimental hip hop"], "explicit": false },
+    { "artist": "Na-Kel Smith", "album": "African American Death Dodger", "cover": "https://e.snmc.io/i/600/w/311976c96a580aa51db5d43385c95040/9775789", "ratings": 24, "genres": ["trap"], "explicit": false },
+    { "artist": "1 800 PAIN", "album": "Best House on a Bad Block", "cover": "https://e.snmc.io/i/600/w/3ec4d44437a45b79a319db30b8fc10df/10448133", "ratings": 1568, "genres": ["industrial hip hop", "hardcore hip hop"], "explicit": false },
+    { "artist": "1 800 PAIN", "album": "Their Money Is Your Money", "cover": "https://e.snmc.io/i/600/w/96ae6853a6abdb5b92f19e2043cbd59a/10750491", "ratings": 1847, "genres": ["industrial hip hop", "power noise"], "explicit": false },
+    { "artist": "1 800 PAIN", "album": "⚠", "cover": "https://e.snmc.io/i/600/w/185ae6578e58d159f911eaaf37255b58/10804885", "ratings": 357, "genres": ["power noise", "industrial hip hop"], "explicit": false },
+    { "artist": "Badlands Booker", "album": "Big Man Mentality 2", "cover": "https://e.snmc.io/i/600/w/c5f0cfddeee3faf50fb88b2da2804344/8317762", "ratings": 19, "genres": ["trap"], "explicit": false },
+    { "artist": "Loyle Carner", "album": "Yesterday's Gone", "cover": "https://e.snmc.io/i/600/w/272ac18086f952827d869a6a31865b3f/6362893", "ratings": 1486, "genres": ["jazz rap"], "explicit": false },
+    { "artist": "Loyle Carner", "album": "Not Waving, but Drowning", "cover": "https://e.snmc.io/i/600/w/17ef4b5483898797801f3184f8239362/7435321", "ratings": 1484, "genres": ["jazz rap", "neo-soul"], "explicit": false },
+    { "artist": "Loyle Carner", "album": "Hugo", "cover": "https://e.snmc.io/i/600/w/589291268d1ee9a304c790fa4dd236c3/10190193", "ratings": 1490, "genres": ["conscious hip hop"], "explicit": false },
+    { "artist": "Loyle Carner", "album": "Hopefully !", "cover": "https://e.snmc.io/i/600/w/240cd67ae2e836485bbc29462571fc21/13277895", "ratings": 465, "genres": ["conscious hip hop"], "explicit": false },
+    { "artist": "Helper", "album": "Watch the Stove", "cover": "https://e.snmc.io/i/600/w/99f11d9a0f988c155a84a0aaf54a894e/6075279", "ratings": 284, "genres": ["trap", "musical parody"], "explicit": false },
+    { "artist": "JStu & Hyper Fenton", "album": "Summer's Back", "cover": "https://e.snmc.io/i/600/w/b93d6082b9f6544be311b29e6bb5298e/9067764", "ratings": 2, "genres": ["christian hip hop", "trap", "pop rap"], "explicit": false },
+    { "artist": "Boy Fantasy", "album": "Boy Fantasy", "cover": "https://e.snmc.io/i/600/w/b063275d7c86a99b614348278788275a/9905207", "ratings": 97, "genres": ["electropop", "hard trance"], "explicit": false },
+    { "artist": "claire rousay", "album": "Blip", "cover": "https://e.snmc.io/i/600/w/95d2270da36c367658c1f6b997d1cf15/9625497", "ratings": 22, "genres": ["minimalism"], "explicit": false },
+    { "artist": "claire rousay", "album": "It Is Just So Much More Difficult", "cover": "https://e.snmc.io/i/600/w/8d8e3d7b4b74dbce217ae70fa588e6e6/7493616", "ratings": 23, "genres": ["free improvisation"], "explicit": false },
+    { "artist": "claire rousay", "album": "Several Erasures", "cover": "https://e.snmc.io/i/600/w/614b9ba01c90fe128f8ad26ec560ece6/7493406", "ratings": 33, "genres": ["free improvisation"], "explicit": false },
+    { "artist": "claire rousay", "album": "Aerophobia", "cover": "https://e.snmc.io/i/600/w/be9227b1dc8bce42c14eeb2989377fe4/7556875", "ratings": 55, "genres": ["free improvisation"], "explicit": false },
+    { "artist": "claire rousay", "album": "Rehearsal / Improvisations", "cover": "https://e.snmc.io/i/600/w/eefe17137b9f78a4446a62f535dbf6f1/9625547", "ratings": 1, "genres": ["lowercase"], "explicit": false },
+    { "artist": "claire rousay", "album": "t4t", "cover": "https://e.snmc.io/i/600/w/bfd45eec71e44729de28542b92d725cb/9153636", "ratings": 337, "genres": ["asmr", "sound collage", "musique concrète"], "explicit": false },
+    { "artist": "claire rousay", "album": "Friends", "cover": "https://e.snmc.io/i/600/w/01bff86cfd7056a5d8ef3b4e66ae2b5a/7866494", "ratings": 54, "genres": ["sound collage", "lowercase"], "explicit": false },
+    { "artist": "claire rousay", "album": "Braesview", "cover": "https://e.snmc.io/i/600/w/266559a150b36188914bf541857213ad/9625470", "ratings": 11, "genres": ["field recordings", "lowercase"], "explicit": false },
+    { "artist": "Jen Hill & claire rousay", "album": "Alcohol", "cover": "https://e.snmc.io/i/600/w/85d58a95af8886925f19745bc353b6b0/9625476", "ratings": 45, "genres": ["sound collage"], "explicit": false },
+    { "artist": "more eaze & claire rousay", "album": "If I Don't Let Myself Be Happy Now Then When?", "cover": "https://e.snmc.io/i/600/w/200d9e0a5704b8107fa85cd569dd38bb/7981384", "ratings": 234, "genres": ["sound collage", "electroacoustic"], "explicit": false },
+    { "artist": "claire rousay", "album": "a heavenly touch", "cover": "https://e.snmc.io/i/600/w/2d40be22d386d0d872e0ff21f57a9bc3/8058299", "ratings": 208, "genres": ["musique concrète"], "explicit": false },
+    { "artist": "Alex Cunningham & claire rousay", "album": "Specifically the Water", "cover": "https://e.snmc.io/i/600/w/00e8077539e34f0a0386dc386d09e12e/8105834", "ratings": 44, "genres": ["free improvisation"], "explicit": false },
+    { "artist": "claire rousay", "album": "I'll Give You All of My Love", "cover": "https://e.snmc.io/i/600/w/79435a635970939fa14bd00dc3a1a591/8205148", "ratings": 44, "genres": ["spoken word", "musique concrète"], "explicit": false },
+    { "artist": "claire rousay", "album": "Both", "cover": "https://e.snmc.io/i/600/w/ca0bcf0ce8db63d814c8ded14222f014/8406929", "ratings": 130, "genres": ["field recordings"], "explicit": false },
+    { "artist": "claire rousay & more eaze / Wind Tide", "album": "claire rousay & more eaze / Wind Tide", "cover": "https://e.snmc.io/i/600/w/b2174bf4471e2847e8f3d5c079d9226a/8578718", "ratings": 27, "genres": ["electroacoustic"], "explicit": false },
+    { "artist": "Lisa Cameron & claire rousay", "album": "Vertices", "cover": "https://e.snmc.io/i/600/w/cd2c89e7bd44bd66bee1fc86cec4b11e/8856930", "ratings": 1, "genres": ["free improvisation"], "explicit": false },
+    { "artist": "Jacob Wick & claire rousay", "album": "I Let a Song Go Out of My Heart", "cover": "https://e.snmc.io/i/600/w/c10c6fb7498418dd7edddf2963f77129/8556686", "ratings": 9, "genres": ["free improvisation"], "explicit": false },
+    { "artist": "claire rousay", "album": "ilysm", "cover": "https://e.snmc.io/i/600/w/ebf3a8f375ab938cc47470494b926b2c/8866839", "ratings": 51, "genres": ["field recordings", "sound collage", "chamber music"], "explicit": false },
+    { "artist": "claire rousay", "album": "A Softer Focus", "cover": "https://e.snmc.io/i/600/w/8b25fb8835aa0279aae9cb418d5179d0/8779591", "ratings": 1253, "genres": ["ambient", "sound collage", "field recordings"], "explicit": false },
+    { "artist": "claire rousay & Patrick Shiroishi", "album": "Now Am Found", "cover": "https://e.snmc.io/i/600/w/f06fa84d976e2066547f5f1f7b254fe1/8987456", "ratings": 47, "genres": ["musique concrète"], "explicit": false },
+    { "artist": "claire rousay", "album": "Monthly Conversations &quot;Podcast&quot;", "cover": "https://e.snmc.io/i/600/w/6b5ac479d61d81aa54782481fdf98a7a/9625848", "ratings": 0, "genres": ["interview"], "explicit": false },
+    { "artist": "claire rousay + more eaze", "album": "An Afternoon Whine", "cover": "https://e.snmc.io/i/600/w/e7ebe777dc00365cdb112cfde8e60c3c/9167422", "ratings": 367, "genres": ["sound collage", "ambient", "electroacoustic"], "explicit": false },
+    { "artist": "claire rousay", "album": "Sometimes I Feel Like I Have No Friends", "cover": "https://e.snmc.io/i/600/w/6b2068a30235342f337c6dfcefbe2189/9589445", "ratings": 155, "genres": ["ambient", "field recordings"], "explicit": false },
+    { "artist": "Claire Rousay and More Eaze", "album": "Never Stop Texting Me", "cover": "https://e.snmc.io/i/600/w/cdbb78c0f43c11c4a6de9fa4b9559aba/9611530", "ratings": 420, "genres": ["hyperpop", "glitch pop"], "explicit": false },
+    { "artist": "claire rousay", "album": "Everything Perfect Is Already Here", "cover": "https://e.snmc.io/i/600/w/67a12649170f3d51e9d2b509f3a07029/9735668", "ratings": 841, "genres": ["sound collage", "ambient"], "explicit": false },
+    { "artist": "Bloodz Boi, claire rousay & more eaze", "album": "A Crying Poem", "cover": "https://e.snmc.io/i/600/w/82048359193eb59eef6b4b06b5484640/10064776", "ratings": 585, "genres": ["ambient pop", "cloud rap"], "explicit": false },
+    { "artist": "claire rousay", "album": "Wouldn't Have to Hurt", "cover": "https://e.snmc.io/i/600/w/7ad3d245dcb82d44e25c0ef16f858df7/10260812", "ratings": 29, "genres": ["sound collage", "ambient"], "explicit": false },
+    { "artist": "claire rousay & Jacob Wick", "album": "Anything You Can Do...", "cover": "https://e.snmc.io/i/600/w/03e8110559649f1c4a2c0cda6784556e/10513507", "ratings": 56, "genres": ["musique concrète", "field recordings"], "explicit": false },
+    { "artist": "Anne-F Jacques & claire rousay", "album": "A Very Busy Social Life", "cover": "https://e.snmc.io/i/600/w/238eca7817a030a32ac91fa1e8d16206/10513512", "ratings": 64, "genres": ["field recordings", "musique concrète"], "explicit": false },
+    { "artist": "claire rousay", "album": "Sentiment", "cover": "https://e.snmc.io/i/600/w/acc2af4143f76d17af99ef01f279f588/11777494", "ratings": 1036, "genres": ["slowcore", "singer-songwriter", "bedroom pop"], "explicit": false },
+    { "artist": "claire rousay", "album": "The Bloody Lady", "cover": "https://e.snmc.io/i/600/w/e2041939a121ba7cb4258bc3a07b26b9/12567859", "ratings": 295, "genres": ["ambient", "modern classical"], "explicit": false },
+    { "artist": "more eaze & claire rousay", "album": "No Floor", "cover": "https://e.snmc.io/i/600/w/d63ff0b31b34530dcc04e269c68f2771/12839216", "ratings": 592, "genres": ["ambient"], "explicit": false },
+    { "artist": "claire rousay & Gretchen Korsmo", "album": "Quilted Lament", "cover": "https://e.snmc.io/i/600/w/673e1f5247ab831095d835f82949ca31/13304231", "ratings": 121, "genres": ["ambient", "sound collage"], "explicit": false },
+    { "artist": "claire rousay", "album": "South Pasadena, California (USA), 06/25/2025, 1.25pm", "cover": "https://e.snmc.io/i/600/w/0a6ee260f6b08dc460fc063979999084/13506529", "ratings": 4, "genres": ["field recordings"], "explicit": false },
+    { "artist": "claire rousay", "album": "Hey", "cover": "https://e.snmc.io/i/600/w/574daeb8a5206a2239bfdb9f2d6abb61/7746054", "ratings": 5, "genres": ["field recordings"], "explicit": false },
+    { "artist": "more eaze & claire rousay", "album": "</3", "cover": "https://e.snmc.io/i/600/w/958d6d61f9f6ab6110139b1563d87ca2/8335936", "ratings": 54, "genres": ["glitch hop", "ambient pop"], "explicit": false },
+    { "artist": "claire rousay", "album": "it was always worth it", "cover": "https://e.snmc.io/i/600/w/0ade1dd48e26fb1a1cbb89a2244dd701/8508474", "ratings": 141, "genres": ["electroacoustic", "sound collage", "field recordings"], "explicit": false },
+    { "artist": "claire rousay", "album": "a moment in st louis and a moment at the beach", "cover": "https://e.snmc.io/i/600/w/ee73d653ac714be30793e3ff4d8d3c8e/9625564", "ratings": 10, "genres": ["ambient", "field recordings", "musique concrète"], "explicit": false },
+    { "artist": "claire rousay", "album": "Twin Bed EP", "cover": "https://e.snmc.io/i/600/w/94ac2ec2fc0eb72c2f9b1021c6e25e1f/8987458", "ratings": 22, "genres": ["musique concrète"], "explicit": false },
+    { "artist": "claire rousay", "album": "17 Roles (All Mapped Out)", "cover": "https://e.snmc.io/i/600/w/ca44e232f4c32a7651063d5556fe2576/9359451", "ratings": 97, "genres": ["ambient"], "explicit": false },
+    { "artist": "claire rousay", "album": "Demos, Experiments, Extras", "cover": "https://e.snmc.io/i/600/w/b9d1f11537ca33924701b2ed3ade7125/10132279", "ratings": 7, "genres": ["ambient", "field recordings", "art pop"], "explicit": false },
+    { "artist": "claire rousay & E Fishpool", "album": "Distance Therapy", "cover": "https://e.snmc.io/i/600/w/c8ca0a4224f5120609979056a1cdfec1/10333685", "ratings": 61, "genres": ["sound collage", "ambient"], "explicit": false },
+    { "artist": "Bomb the Music Industry!", "album": "Album Minus Band", "cover": "https://e.snmc.io/i/600/w/1eeb9a478de10577f4ae45472a639bae/1761573", "ratings": 1815, "genres": ["ska punk", "punk rock", "indie rock"], "explicit": false },
+    { "artist": "Bomb the Music Industry!", "album": "Goodbye Cool World!", "cover": "https://e.snmc.io/i/600/w/72d242b88f5a4145e7687ee5769f9a83/1656434", "ratings": 1849, "genres": ["punk rock", "ska punk"], "explicit": false },
+    { "artist": "Bomb the Music Industry!", "album": "Get Warmer", "cover": "https://e.snmc.io/i/600/w/b788529127ab0590407d5a6132ce6020/1937316", "ratings": 1474, "genres": ["ska punk", "punk rock", "indie rock"], "explicit": false },
+    { "artist": "Bomb the Music Industry!", "album": "Scrambles", "cover": "https://e.snmc.io/i/600/w/8c99c0f0ffb1413afd62506e5e44d911/2564706", "ratings": 2520, "genres": ["punk rock", "indie rock"], "explicit": false },
+    { "artist": "Bomb the Music Industry!", "album": "Vacation", "cover": "https://e.snmc.io/i/600/w/8dd36aea3197a83a2b55c9eae6083ccc/3737407", "ratings": 3517, "genres": ["indie rock", "power pop", "pop punk", "punk rock"], "explicit": false },
+    { "artist": "Bomb the Music Industry!", "album": "To Leave or Die in Long Island", "cover": "https://e.snmc.io/i/600/w/a7e16100a711bc3e1722c3a023271d49/1761574", "ratings": 1376, "genres": ["punk rock", "indie rock"], "explicit": false },
+    { "artist": "Rick Johnson Rock and Roll Machine / Bomb the Music Industry!", "album": "President's Day Split", "cover": "https://e.snmc.io/i/600/w/95508bd27f3888206b69e8b32eaac514/8762331", "ratings": 43, "genres": ["synth punk", "new wave"], "explicit": false },
+    { "artist": "Bomb the Music Industry / O Pioneers", "album": "Bomb the Music Industry / O Pioneers", "cover": "https://e.snmc.io/i/600/w/d30f7a6598f32dccc5fa4ded71490b9b/2100368", "ratings": 246, "genres": ["punk rock", "ska punk"], "explicit": false },
+    { "artist": "Bomb the Music Industry! / Laura Stevenson and the Cans", "album": "Bomb the Music Industry! / Laura Stevenson and the Cans", "cover": "https://e.snmc.io/i/600/w/ff6185d321bacad96fd9683032274e26/2710267", "ratings": 124, "genres": ["indie pop", "indie folk"], "explicit": false },
+    { "artist": "Bomb the Music Industry!", "album": "Adults!!!... Smart!!! Shithammered!!! And Excited by Nothing!!!!!!!", "cover": "https://e.snmc.io/i/600/w/746aa6635a3375f7624e8a359953d1b7/2979262", "ratings": 2247, "genres": ["ska punk", "indie rock", "power pop"], "explicit": false },
+    { "artist": "The Forecast / Into It. Over It. / The Swellers / Bomb the Music Industry!", "album": "Scott & Aubrey - October 6, 2012", "cover": "https://e.snmc.io/i/600/w/e0dd1f2c6c1d0fd545599a53f1af152e/4445262", "ratings": 16, "genres": ["midwest emo", "indie rock", "punk rock"], "explicit": false },
+    { "artist": "Death Grips", "album": "The Money Store", "cover": "https://e.snmc.io/i/300/w/559ea8a1656d26f0abf4c3bbaa916853/6553570", "ratings": 67160, "genres": ["industrial hip hop", "hardcore hip hop", "experimental hip hop"], "explicit": true },
+    { "artist": "Death Grips", "album": "No Love Deep Web", "cover": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/d5/a0/7e/d5a07e73-cc45-6b50-7826-797344228683/00602537531790.rgb.jpg/600x600bb.jpg", "ratings": 34931, "genres": ["hardcore hip hop", "abstract hip hop", "experimental hip hop", "industrial hip hop"], "explicit": true },
+    { "artist": "Death Grips", "album": "Government Plates", "cover": "https://e.snmc.io/i/600/w/7ce484c9fdb5dee8c7f147593d3b05f5/5005084", "ratings": 26618, "genres": ["industrial hip hop", "glitch hop", "abstract hip hop", "deconstructed club", "experimental hip hop"], "explicit": false },
+    { "artist": "Death Grips", "album": "Niggas on the Moon: The Powers That B Disc 1", "cover": "https://e.snmc.io/i/600/w/1d6b2c76f66393adde1393b20c28e6c8/11423278", "ratings": 23813, "genres": ["experimental hip hop", "glitch hop", "abstract hip hop"], "explicit": false },
+    { "artist": "Death Grips", "album": "Fashion Week", "cover": "https://e.snmc.io/i/600/w/449be5d62c5373e7506caf84958d6c37/10747934", "ratings": 12001, "genres": ["glitch hop", "wonky"], "explicit": false },
+    { "artist": "Death Grips", "album": "Jenny Death", "cover": "https://e.snmc.io/i/600/w/104073a72d11ea5bc9e9253b07b1eb5b/8523924", "ratings": 22568, "genres": ["noise rock", "experimental hip hop", "industrial hip hop", "rap rock"], "explicit": false },
+    { "artist": "Death Grips", "album": "Bottomless Pit", "cover": "https://e.snmc.io/i/600/w/1c31e8e1803385295fd1b457c7c1cecb/7574206", "ratings": 36602, "genres": ["industrial hip hop", "abstract hip hop", "experimental hip hop"], "explicit": false },
+    { "artist": "Death Grips", "album": "Year of the Snitch", "cover": "https://e.snmc.io/i/600/w/61819950aacbb0709577d8d527bda281/7040897", "ratings": 29021, "genres": ["experimental hip hop", "abstract hip hop"], "explicit": false },
+    { "artist": "Silentó", "album": "Fresh Outta High School", "cover": "https://e.snmc.io/i/600/w/ddd7f6b23eee91d0de8dae117bbd47ae/7201046", "ratings": 32, "genres": ["pop rap", "trap", "snap"], "explicit": false },
+    { "artist": "Silentó", "album": "Fresh Outta High School Part 2", "cover": "https://e.snmc.io/i/600/w/0f02c9585b97c8e8f5d356f4c980a397/7748478", "ratings": 21, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "The KLF", "album": "Chill Out", "cover": "https://e.snmc.io/i/600/w/015c32ebab1741a35db88638c68bed0f/10718368", "ratings": 6619, "genres": ["ambient", "chillout", "sound collage"], "explicit": false },
+    { "artist": "The KLF", "album": "The White Room", "cover": "https://e.snmc.io/i/600/w/10d60af7f53bbbf4024f2d235a6ce7b1/12628667", "ratings": 2331, "genres": ["acid house"], "explicit": false },
+    { "artist": "The Justified Ancients of Mu Mu", "album": "Come Down Dawn", "cover": "https://e.snmc.io/i/600/w/b68877aceb5b7dc912f68d1f5ddccc5c/8764821", "ratings": 602, "genres": ["ambient", "electronic", "sound collage", "chillout"], "explicit": false },
+    { "artist": "The KLF", "album": "The White Room (Director's Cut)", "cover": "https://e.snmc.io/i/600/w/3a1e305cfc87a8ae55cbd2ae0981d45e/8961514", "ratings": 170, "genres": ["acid house", "house"], "explicit": false },
+    { "artist": "The KLF", "album": "Mu", "cover": "https://e.snmc.io/i/600/w/435f1ec0fa1036bd4da0e8b6f9d4157e/1674065", "ratings": 55, "genres": ["house", "hip house"], "explicit": false },
+    { "artist": "The KLF", "album": "Live @ Helter Skelter", "cover": "https://e.snmc.io/i/600/w/20ec62a802b53b82615e31e4a30ec1fd/12427001", "ratings": 4, "genres": ["electronic", "trance"], "explicit": false },
+    { "artist": "Beach House", "album": "Beach House", "cover": "https://e.snmc.io/i/600/w/6057fdd6ca093b871f80800627aad998/12951015", "ratings": 8925, "genres": ["dream pop"], "explicit": false },
+    { "artist": "Beach House", "album": "Devotion", "cover": "https://e.snmc.io/i/600/w/836bc21be7598d55d51e49df2d49d64c/12893285", "ratings": 10430, "genres": ["dream pop", "indie pop"], "explicit": false },
+    { "artist": "Beach House", "album": "Teen Dream", "cover": "https://e.snmc.io/i/600/w/4065ba0612320337b637ef734c3b8408/11436635", "ratings": 26103, "genres": ["dream pop", "indie pop"], "explicit": false },
+    { "artist": "Beach House", "album": "Bloom", "cover": "https://e.snmc.io/i/600/w/4fe1bfdff085fbd1e595e409880893de/4130381", "ratings": 29959, "genres": ["dream pop", "indie pop"], "explicit": false },
+    { "artist": "Beach House", "album": "Depression Cherry", "cover": "https://e.snmc.io/i/600/w/d3363e513675f4c26996f2f006c71aa0/5713091", "ratings": 23779, "genres": ["dream pop"], "explicit": false },
+    { "artist": "Beach House", "album": "Thank Your Lucky Stars", "cover": "https://e.snmc.io/i/600/w/cfe4b22396443d60fa28657ecb7d4953/10085872", "ratings": 8064, "genres": ["dream pop"], "explicit": false },
+    { "artist": "Beach House", "album": "7", "cover": "https://e.snmc.io/i/600/w/1f4faecffc95d33df745df0685f1b036/7574044", "ratings": 16794, "genres": ["dream pop", "neo-psychedelia"], "explicit": false },
+    { "artist": "Beach House", "album": "Once Twice Melody", "cover": "https://e.snmc.io/i/600/w/cb96e1228ba3d9942bb7270db372e97f/9473519", "ratings": 15655, "genres": ["dream pop", "neo-psychedelia"], "explicit": false },
+    { "artist": "Beach House", "album": "Once Twice Melody", "cover": "https://e.snmc.io/i/600/w/08afc5d48423296f0e3d2c667bc8244d/9469128", "ratings": 3346, "genres": ["dream pop", "neo-psychedelia"], "explicit": false },
+    { "artist": "Beach House", "album": "Become", "cover": "https://e.snmc.io/i/600/w/41694b1e3322f81b2ce10c4f8e7d5214/10926437", "ratings": 3570, "genres": ["dream pop", "neo-psychedelia"], "explicit": false },
+    { "artist": "Glass Animals", "album": "ZABA", "cover": "https://e.snmc.io/i/600/w/6dfbd23bd92778f218f9941cf4d93883/5208547", "ratings": 3019, "genres": ["indietronica", "alt-pop", "downtempo"], "explicit": false },
+    { "artist": "Glass Animals", "album": "How to Be a Human Being", "cover": "https://e.snmc.io/i/600/w/fcf73e48f5eb496538ce2ae280a4633b/6592433", "ratings": 4714, "genres": ["indietronica", "alt-pop"], "explicit": false },
+    { "artist": "Glass Animals", "album": "Dreamland", "cover": "https://e.snmc.io/i/600/w/67e1dc2a97982095607d6df75ad3bedb/8155045", "ratings": 3436, "genres": ["indietronica", "alt-pop"], "explicit": false },
+    { "artist": "Glass Animals", "album": "I Love You So F***ing Much", "cover": "https://e.snmc.io/i/600/w/78fd8ba945e16a9903a2a061f38a57ed/12365368", "ratings": 962, "genres": ["alt-pop", "pop rock"], "explicit": false },
+    { "artist": "Glass Animals", "album": "Leaflings", "cover": "https://e.snmc.io/i/600/w/a5888f20495af9e5e91b160f0b8aa608/4433654", "ratings": 169, "genres": ["trip hop", "alt-pop"], "explicit": false },
+    { "artist": "Glass Animals", "album": "Glass Animals", "cover": "https://e.snmc.io/i/600/w/8cabe9c4ae9602625ef9d18dd3ed7efa/5069943", "ratings": 139, "genres": ["art pop", "synthpop", "trip hop", "alt-pop"], "explicit": false },
+    { "artist": "Glass Animals", "album": "Pools EP", "cover": "https://e.snmc.io/i/600/w/11b155248e9b2a818994f8bc917457e8/11306127", "ratings": 20, "genres": ["psychedelic pop"], "explicit": false },
+    { "artist": "Glass Animals", "album": "Quarantine Covers", "cover": "https://e.snmc.io/i/600/w/070dbbe99feb126a1162457d60d1af7e/8124961", "ratings": 73, "genres": ["art pop", "alternative r&b"], "explicit": false },
+    { "artist": "Glass Animals", "album": "Heat Waves (Expansion Pack)", "cover": "https://e.snmc.io/i/600/w/020436071fd6c2cdb8defff620191ae5/8769208", "ratings": 17, "genres": ["house"], "explicit": false },
+    { "artist": "Musicians of Ponyville", "album": "Winter's End", "cover": "https://e.snmc.io/i/600/w/8824d30f9709bba1e0778e4635049b62/8860016", "ratings": 85, "genres": ["brostep", "electro house"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Horse Friends", "cover": "https://e.snmc.io/i/600/w/4f08bd580a55d0cabd7fbf0bfdea35ea/10147467", "ratings": 96, "genres": ["electronic dance music"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Super Pony World", "cover": "https://e.snmc.io/i/600/w/3ffdbd77545b3526108ce2acf731bce2/10147465", "ratings": 119, "genres": ["electronic dance music", "brostep"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Love Letters", "cover": "https://e.snmc.io/i/600/w/139e590bbc1be18fda9260d6471f42c9/10147463", "ratings": 157, "genres": ["alt-pop", "electronic"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "apathy.", "cover": "https://e.snmc.io/i/600/w/f191d82477f842c15dc8ad825a856c94/10147459", "ratings": 128, "genres": ["lo-fi hip hop", "ambient"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Mystic Acoustics", "cover": "https://e.snmc.io/i/600/w/a9d93089d3c1c632fd23864009381ec1/10147458", "ratings": 207, "genres": ["art pop", "brostep", "electronic dance music"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Tales From Equestria", "cover": "https://e.snmc.io/i/600/w/c6012fe8dd661a73cd64aff1f8d7352b/10147407", "ratings": 108, "genres": ["alternative r&b", "bedroom pop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Our Light and After", "cover": "https://e.snmc.io/i/600/w/2e71f1ccbf388912255f447111ec6be8/10147405", "ratings": 174, "genres": ["indietronica", "folktronica", "bedroom pop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Aloe & Lotus", "cover": "https://e.snmc.io/i/600/w/7d74f4498eda1f3d03d9f1ae5657740f/8427930", "ratings": 121, "genres": ["alternative r&b", "lo-fi hip hop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Glitter", "cover": "https://e.snmc.io/i/600/w/8930b3a30ef2a339a66a7bae0e4e2156/10147395", "ratings": 175, "genres": ["alternative r&b", "synthpop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Homeward", "cover": "https://e.snmc.io/i/600/w/913ea850585736ab6288b7d93c23f93f/10147394", "ratings": 215, "genres": ["synthpop", "art pop", "electropop", "electronic dance music"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Love Letters: Colourless", "cover": "https://e.snmc.io/i/600/w/4f80ce6e71bcaf36b63b959936ea9e7d/10147392", "ratings": 488, "genres": ["alternative r&b", "synthpop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Queen of Misfits", "cover": "https://e.snmc.io/i/600/w/299e543eab48aee6fb143d53ce7be198/10147382", "ratings": 323, "genres": ["electropop", "synthpop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Super Pony World: Fairytails", "cover": "https://e.snmc.io/i/600/w/9b45110f1cef5c14f5806708d163651c/10147376", "ratings": 420, "genres": ["electronic dance music", "electropop", "synthpop", "dance-pop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "CUTIEMARKS (And the Things That Bind Us)", "cover": "https://e.snmc.io/i/600/w/ebc1cbe0a9bf93e92a2bf621eff37686/9284002", "ratings": 2232, "genres": ["electronic dance music", "electropop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Can Opener's Notebook: Fish Whisperer", "cover": "https://e.snmc.io/i/600/w/ef6cdebab01ebd2d2d24d47535f4a1e7/10147373", "ratings": 2102, "genres": ["indietronica", "pop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Carousel (An Examination of the Shadow, Creekflow, and Its Life as an Afterthought)", "cover": "https://e.snmc.io/i/600/w/87129f0df166fff576422576532a92f9/11652973", "ratings": 2352, "genres": ["electronic dance music", "art pop"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Girls Who Are Wizards", "cover": "https://e.snmc.io/i/600/w/76e71e7a338e4a3f130e5fe1d8adfeb6/11972049", "ratings": 1202, "genres": ["electronic dance music"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Monarch of Monsters", "cover": "https://e.snmc.io/i/300/w/b8b724d52740b39938f9e1623dab8fde/12649278", "ratings": 3622, "genres": ["alternative rock", "progressive rock", "noise rock"], "explicit": true },
+    { "artist": "†he Gu¥$", "album": "Epic Album", "cover": "https://e.snmc.io/i/600/w/bba98020444f9406f4c30ec398bb66ee/13203728", "ratings": 37, "genres": ["electropop", "musical comedy", "midi music"], "explicit": false },
+    { "artist": "Vylet Pony", "album": "Love & Ponystep", "cover": "https://e.snmc.io/i/600/w/d510b62fbff02d9ffab9f09a30dbf404/13547087", "ratings": 1045, "genres": ["electronic dance music", "electropop"], "explicit": false },
+    { "artist": "The Protomen", "album": "The Protomen", "cover": "https://e.snmc.io/i/600/w/6f9453c49a7a39df9c003e1a274621ce/8044220", "ratings": 1112, "genres": ["rock opera", "hard rock"], "explicit": false },
+    { "artist": "The Protomen", "album": "Act II: The Father of Death", "cover": "https://e.snmc.io/i/600/w/320d7df2e1c00508cea827bcfc1dddef/2760477", "ratings": 1365, "genres": ["rock opera", "hard rock", "art rock", "aor"], "explicit": false },
+    { "artist": "The Protomen", "album": "The Cover Up", "cover": "https://e.snmc.io/i/600/w/fae867cbd0e80cc5fc0bcd1d864d071c/5748942", "ratings": 219, "genres": ["pop rock"], "explicit": false },
+    { "artist": "The Protomen", "album": "Cover Up EP", "cover": "https://e.snmc.io/i/600/w/975edcaff7b2e4771e15169f2290c1d4/6256656", "ratings": 11, "genres": ["pop rock", "aor"], "explicit": false },
+    { "artist": "The Protomen", "album": "Live in Nashville", "cover": "https://e.snmc.io/i/600/w/68fa18dc7922a3c7fa9935de0ac7bcf8/8564231", "ratings": 24, "genres": ["hard rock", "rock opera", "aor"], "explicit": false },
+    { "artist": "The Protomen", "album": "A Night of Queen", "cover": "https://e.snmc.io/i/600/w/efdef4fa810f944fe8d1dc9360a85e49/4174404", "ratings": 98, "genres": ["hard rock", "pop rock", "aor"], "explicit": false },
+    { "artist": "The Protomen & 84001", "album": "Terminator the Second", "cover": "https://e.snmc.io/i/600/w/084008a8d316ee46d49afea65c5d853b/7584563", "ratings": 7, "genres": ["hard rock", "rock opera"], "explicit": false },
+    { "artist": "The Protomen", "album": "Light Up the Night", "cover": "https://e.snmc.io/i/600/w/bbde9d83f3b4016f8dc300621f9df1ad/6357239", "ratings": 10, "genres": ["rock opera", "hard rock", "aor"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "Sings Songs and Plays Guitar", "cover": "https://e.snmc.io/i/600/w/5ccbadba016e305b289c78af943a79d8/3743111", "ratings": 102, "genres": ["contemporary folk", "singer-songwriter"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "Motherland", "cover": "https://e.snmc.io/i/600/w/3bd6ba651cfc606e1963837a150f74ed/5706118", "ratings": 56, "genres": ["avant-folk"], "explicit": false },
+    { "artist": "Richard Dawson / Ally May / Jazzfinger / Nev Clay", "album": "Dawson May Jazzfinger Clay", "cover": "https://e.snmc.io/i/600/w/f6f6072827992e341a858f279c0d31e7/3743119", "ratings": 31, "genres": ["contemporary folk", "drone", "poetry", "noise"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "The Magic Bridge", "cover": "https://e.snmc.io/i/600/w/e24e1b9c4d0fc5e35f19369b263e3686/7804679", "ratings": 1028, "genres": ["avant-folk", "singer-songwriter"], "explicit": false },
+    { "artist": "Dawson-Davies: Hen Ogledd", "album": "Dawson-Davies: Hen Ogledd", "cover": "https://e.snmc.io/i/600/w/f00986e7470707e0b2a121ed83c09be6/5037541", "ratings": 61, "genres": ["free improvisation"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "The Glass Trunk", "cover": "https://e.snmc.io/i/600/w/804f7452ccc953f50625576b62390e7d/4732599", "ratings": 455, "genres": ["a cappella", "avant-folk"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "Nothing Important", "cover": "https://e.snmc.io/i/600/w/48c8be474c68f47f6c822d8b4617c607/5449983", "ratings": 2066, "genres": ["avant-folk", "singer-songwriter", "progressive folk"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "Peasant", "cover": "https://e.snmc.io/i/600/w/437062aef43113152165c82f601e27a8/7225917", "ratings": 6477, "genres": ["progressive folk", "avant-folk"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "2020", "cover": "https://e.snmc.io/i/600/w/5dfd3441a69d85368186a1114e4e634d/7656280", "ratings": 4354, "genres": ["art rock", "singer-songwriter"], "explicit": false },
+    { "artist": "Richard Dawson & Circle", "album": "Henki", "cover": "https://e.snmc.io/i/600/w/78d98aaa3b658aab973d05aa056a842d/9451366", "ratings": 3427, "genres": ["progressive rock", "art rock"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "The Ruby Cord", "cover": "https://e.snmc.io/i/600/w/5f7a13b1491b984586c5edfc621432d7/10406926", "ratings": 4098, "genres": ["progressive folk", "avant-folk"], "explicit": false },
+    { "artist": "Richard Dawson", "album": "End of the Middle", "cover": "https://e.snmc.io/i/600/w/67b51452156a8434c61ab9c22b87274a/12660903", "ratings": 2089, "genres": ["singer-songwriter", "progressive folk"], "explicit": false },
+    { "artist": "Logic", "album": "Under Pressure", "cover": "https://e.snmc.io/i/600/w/e328d72807393088cdeb11e2adcf9e89/5404409", "ratings": 5532, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Logic", "album": "The Incredible True Story", "cover": "https://e.snmc.io/i/600/w/fd1f1b0b578b2e97c6c7393f9b7eea3a/11042022", "ratings": 4265, "genres": ["pop rap"], "explicit": false },
+    { "artist": "Logic", "album": "Everybody", "cover": "https://e.snmc.io/i/600/w/744f4e251cff359911490925abbe4752/11042032", "ratings": 4377, "genres": ["political hip hop", "pop rap"], "explicit": false },
+    { "artist": "Logic", "album": "YSIV", "cover": "https://e.snmc.io/i/600/w/b53a40fb010067972576c38acf66896c/11042044", "ratings": 2940, "genres": ["boom bap"], "explicit": false },
+    { "artist": "Logic", "album": "Supermarket", "cover": "https://e.snmc.io/i/600/w/40c6b9265c32afb435d0e116d2715a53/11042046", "ratings": 3757, "genres": ["indie pop", "pop rock"], "explicit": false },
+    { "artist": "Logic", "album": "Confessions of a Dangerous Mind", "cover": "https://e.snmc.io/i/600/w/d6c63578f570f15be34c4b0afb8286ac/11042054", "ratings": 4194, "genres": ["trap"], "explicit": false },
+    { "artist": "Logic", "album": "No Pressure", "cover": "https://e.snmc.io/i/600/w/1bd2b96c9b6227a6ed00e849659fbf6d/8344642", "ratings": 5012, "genres": ["hip hop"], "explicit": false },
+    { "artist": "Logic", "album": "Vinyl Days", "cover": "https://e.snmc.io/i/600/w/9f2e15a3413006b2d23fffaf57a997a0/10036431", "ratings": 3354, "genres": ["boom bap"], "explicit": false },
+    { "artist": "Logic", "album": "College Park", "cover": "https://e.snmc.io/i/600/w/2a5cc5ba413fda3180877bb2f583c191/10765032", "ratings": 1871, "genres": ["boom bap"], "explicit": false },
+    { "artist": "Logic", "album": "Ultra 85", "cover": "https://e.snmc.io/i/600/w/2018faa2106fe721b4bb7bff45115a09/12585940", "ratings": 2195, "genres": ["boom bap"], "explicit": false },
+    { "artist": "Juicy J & Logic", "album": "Live and in Color", "cover": "https://e.snmc.io/i/600/w/55cedd9ce8aa748814ba28c1d32bbf74/13428753", "ratings": 210, "genres": ["trap", "boom bap"], "explicit": false },
+    { "artist": "TisaKorean", "album": "In Silly We Trust", "cover": "https://e.snmc.io/i/600/w/5f8bee920fd10f712ea339c420dfd141/12586947", "ratings": 350, "genres": ["pop rap", "experimental hip hop"], "explicit": false },
+    { "artist": "TisaKorean", "album": "Nights of Christmas 2", "cover": "https://e.snmc.io/i/600/w/b2bbb9b720113a2edbde7a2f4fc3092c/10786185", "ratings": 34, "genres": ["christmas music", "tread"], "explicit": false },
+    { "artist": "TisaKorean", "album": "Stupid Dumb Geek", "cover": "https://e.snmc.io/i/600/w/acb4d362627f93244d4fa72fd17a6f9b/7544820", "ratings": 45, "genres": ["trap"], "explicit": false },
+    { "artist": "TisaKorean", "album": "A Guide to Being a Partying Freshman", "cover": "https://e.snmc.io/i/600/w/33082387603097e6e883b9ff51780279/7427845", "ratings": 298, "genres": ["experimental hip hop", "no melody", "snap"], "explicit": false },
+    { "artist": "TisaKorean", "album": "Soapy Club", "cover": "https://e.snmc.io/i/600/w/0bd3be208893ae52a9b4728d84eaaa3f/7655554", "ratings": 171, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "TisaKorean", "album": "Wasteland.", "cover": "https://e.snmc.io/i/600/w/b71c9ad0f4ddb9d92a713c73bdb8dc68/8616141", "ratings": 120, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "TisaKorean", "album": "pResiLLy", "cover": "https://e.snmc.io/i/600/w/cbdcce32a72e93838fab4ee836f84ce2/9406422", "ratings": 194, "genres": ["experimental hip hop", "trap"], "explicit": false },
+    { "artist": "TisaKorean", "album": "mr.siLLYfLow", "cover": "https://e.snmc.io/i/600/w/45b2b8bdc97d544dc9bd47c972382d9b/9414615", "ratings": 699, "genres": ["trap", "experimental hip hop", "snap"], "explicit": false },
+    { "artist": "TisaKorean", "album": "Let Me Update My Status", "cover": "https://e.snmc.io/i/600/w/dcf4005a4beef2361c253418fc13b4f1/10825588", "ratings": 1355, "genres": ["snap"], "explicit": false },
+    { "artist": "TisaKorean", "album": "HAPPYBIRTHDAYTISA <3", "cover": "https://e.snmc.io/i/600/w/0babf6513ad19a89a422fa5a848a27c4/7534074", "ratings": 60, "genres": ["no melody", "experimental hip hop"], "explicit": false },
+    { "artist": "TisaKorean", "album": "1st Round Pick", "cover": "https://e.snmc.io/i/600/w/8ee4daaea50018838bc4061869795cdf/9773327", "ratings": 344, "genres": ["experimental hip hop"], "explicit": false },
+    { "artist": "TisaKorean", "album": "MUMU 8818", "cover": "https://e.snmc.io/i/600/w/e58ab84c5f88e8a308bbffb47f1b206b/11976158", "ratings": 343, "genres": ["pop rap", "trap"], "explicit": false },
+    { "artist": "Various Artists", "album": "#TWERKNATION SEASON ONE", "cover": "https://e.snmc.io/i/600/w/50af9b2aecc0d3d5223341a50783c58b/9548157", "ratings": 345, "genres": ["jersey club"], "explicit": false },
+    { "artist": "glass beach", "album": "the first glass beach album", "cover": "https://e.snmc.io/i/600/w/c451115d5e29c2a5a89f3ba6700675ec/8175243", "ratings": 9632, "genres": ["indie rock", "power pop", "art rock"], "explicit": false },
+    { "artist": "glass beach", "album": "Alchemist Rats Beg Bashful (Remixes)", "cover": "https://e.snmc.io/i/600/w/8742330f0b41fa9045da9eee39538baf/10535035", "ratings": 379, "genres": ["indie rock", "indietronica"], "explicit": false },
+    { "artist": "glass beach", "album": "plastic death", "cover": "https://e.snmc.io/i/600/w/1cffac51f8543e92f8772dd91f007e1e/11478493", "ratings": 8309, "genres": ["indie rock", "art rock", "progressive rock"], "explicit": false },
+    { "artist": "glass beach", "album": "Glass Beach Live at Minecraft", "cover": "https://e.snmc.io/i/600/w/cf7f6f33f7d0e04a515af4760555e4aa/10535038", "ratings": 49, "genres": ["indie rock"], "explicit": false },
+    { "artist": "Peace", "album": "In Love", "cover": "https://e.snmc.io/i/600/w/b78cdabdc7a7814ee05665d527bfd8a3/4651628", "ratings": 501, "genres": ["indie rock"], "explicit": false },
+    { "artist": "Peace", "album": "Happy People", "cover": "https://e.snmc.io/i/600/w/1f75cabf1c18b1595447aede3e1f07fe/5485409", "ratings": 272, "genres": ["indie rock", "britpop"], "explicit": false },
+    { "artist": "Peace", "album": "Kindness Is the New Rock and Roll", "cover": "https://e.snmc.io/i/600/w/80b292c268deeb3946e3b353f864781b/6872161", "ratings": 104, "genres": ["indie rock", "pop rock"], "explicit": false },
+    { "artist": "Peace", "album": "Delicious EP", "cover": "https://e.snmc.io/i/600/w/786148821efb75b173d5b3bdd3086e45/4362077", "ratings": 224, "genres": ["indie rock"], "explicit": false },
+];
+const genreAliases = {
+    "edm": "electronic dance music",
+    "hnw": "harsh noise wall"
+};
+const genreData = {
+    "alternative metal": ["metal"],
+    "neo-soul": ["soul"],
+    "shoegaze": ["alternative rock", "rock"],
+    "emo": ["rock", "punk"],
+    "screamo": ["emo", "post-hardcore", "hardcore", "hardcore punk"],
+    "drumless": ["hip hop", "rap"],
+    "modern classical": ["classical music", "classical"],
+    "chamber music": ["classical music", "classical"],
+    "blackgaze": ["atmospheric black metal", "black metal", "shoegaze"],
+    "epic collage": ["sound collage"],
+    "latin electronic": ["electronic"],
+    "post-hardcore": ["hardcore"],
+    "post-metal": ["metal"],
+    "post-rock": ["rock"],
+    "art pop": ["experimental pop", "pop"],
+    "black metal": ["metal"],
+    "thrash metal": ["metal"],
+    "dissonant black metal": ["black metal", "metal"],
+    "avant-garde metal": ["metal", "experimental metal"],
+    "jazz pop": ["jazz", "pop"],
+    "dream pop": ["pop"],
+    "indie pop": ["pop", "independent pop"],
+    "brutal death metal": ["death metal", "metal", "brutal metal"],
+    "technical death metal": ["death metal", "metal", "technical metal"],
+    "dissonant death metal": ["death metal", "metal", "dissonant metal"],
+    "technical thrash metal": ["thrash metal", "technical metal", "metal"],
+    "electronic dance music": ["edm"],
+    "atmospheric sludge metal": ["atmospheric metal", "sludge metal", "metal"],
+    "hardcore hip hop": ["horrorcore"],
+    "horrorcore": ["hardcore hip hop"],
+    "atmospheric black metal": ["black metal", "metal"],
+    "harsh noise": ["noise", "harsh noise wall"],
+    "noise": ["harsh noise", "harsh noise wall"],
+    "harsh noise wall": ["noise", "harsh noise"],
+    "vapornoise": ["vaporwave"],
+};
+// for logging how many albums are in the database.
+let DATAFORCONSOLE = {};
+for (let x of data) {
+    if (!Object.keys(DATAFORCONSOLE).includes(`genre_${x.genres.length}`))
+        DATAFORCONSOLE[`genre_${x.genres.length}`] = 0;
+    DATAFORCONSOLE[`genre_${x.genres.length}`] += 1;
+}
+console.log(`Currently ${data.length} albums in the database.
+
+1 genre:  ${DATAFORCONSOLE["genre_1"]}
+2 genres: ${DATAFORCONSOLE["genre_2"]}
+3 genres: ${DATAFORCONSOLE["genre_3"]}
+4 genres: ${DATAFORCONSOLE["genre_4"]}
+5 genres: ${DATAFORCONSOLE["genre_5"]}`);
+if (!localStorage.getItem(ls.genre_no))
+    localStorage.setItem(ls.genre_no, "2");
+if (!localStorage.getItem(ls.max_rounds))
+    localStorage.setItem(ls.max_rounds, "5");
+if (!localStorage.getItem(ls.popularity))
+    localStorage.setItem(ls.popularity, "10");
+if (!localStorage.getItem(ls.pop_min))
+    localStorage.setItem(ls.pop_min, "0");
+if (!localStorage.getItem(ls.pop_max))
+    localStorage.setItem(ls.pop_max, "10");
+if (!localStorage.getItem(ls.hide_info))
+    localStorage.setItem(ls.hide_info, "false");
+if (!localStorage.getItem(ls.allow_explicit))
+    localStorage.setItem(ls.allow_explicit, "false");
+// number of genres
+const genreNo = document.getElementById("no-of-genres");
+for (let x of genreNo.children) {
+    if (x.getAttribute("value") === localStorage.getItem(ls.genre_no)) {
+        x.setAttribute("selected", "");
+    }
+}
+genreNo.onchange = () => {
+    localStorage.setItem(ls.genre_no, genreNo.value);
+};
+// number of rounds
+const roundsNo = document.getElementById("no-of-rounds");
+roundsNo.value = localStorage.getItem(ls.max_rounds);
+roundsNo.onkeyup = (e) => {
+    roundsNo.value = roundsNo.value.replace(/\D+/g, "");
+    if (Number(roundsNo.value) > Number(roundsNo.getAttribute("max"))) {
+        roundsNo.value = roundsNo.getAttribute("max");
+    }
+    else if (Number(roundsNo.value) < Number(roundsNo.getAttribute("min")) && roundsNo.value !== "") {
+        roundsNo.value = roundsNo.getAttribute("min");
+    }
+    maxRound = Number(roundsNo.value);
+    localStorage.setItem(ls.max_rounds, roundsNo.value);
+};
+// popularity
+const popularityMinEl = document.getElementById("popularity-of-albums_min");
+const popularityMaxEl = document.getElementById("popularity-of-albums_max");
+popularityMinEl.onkeyup = (e) => {
+    popularityMinEl.value = popularityMinEl.value.replace(/\D+/g, "");
+    if (Number(popularityMinEl.value) < 0)
+        popularityMinEl.value = "0";
+    else if (Number(popularityMinEl.value) > 100)
+        popularityMinEl.value = "100";
+    localStorage.setItem(ls.pop_min, popularityMinEl.value);
+};
+popularityMaxEl.onkeyup = (e) => {
+    popularityMaxEl.value = popularityMaxEl.value.replace(/\D+/g, "");
+    if (Number(popularityMaxEl.value) < 0)
+        popularityMaxEl.value = "0";
+    else if (Number(popularityMaxEl.value) > 100)
+        popularityMaxEl.value = "100";
+    localStorage.setItem(ls.pop_max, popularityMaxEl.value);
+};
+popularityMinEl.value = localStorage.getItem(ls.pop_min);
+popularityMaxEl.value = localStorage.getItem(ls.pop_max);
+// hide info
+const hideInfoEl = document.getElementById("hide-info");
+const artistEl = document.querySelector(".cover .artist");
+const albumEl = document.querySelector(".cover .album");
+hideInfoEl.onchange = () => {
+    if (hideInfoEl.checked) {
+        artistEl.classList.add("none");
+        albumEl.classList.add("none");
+    }
+    else {
+        artistEl.classList.remove("none");
+        albumEl.classList.remove("none");
+    }
+    localStorage.setItem(ls.hide_info, `${hideInfoEl.checked}`);
+};
+if (localStorage.getItem(ls.hide_info) === "true") {
+    hideInfoEl.checked = true;
+    artistEl.classList.add("none");
+    albumEl.classList.add("none");
+}
+// allow explicit covers
+const allowExplicitEl = document.getElementById("allow-explicit");
+allowExplicitEl.onchange = () => {
+    localStorage.setItem(ls.allow_explicit, `${allowExplicitEl.checked}`);
+};
+if (localStorage.getItem(ls.allow_explicit) === "true") {
+    allowExplicitEl.checked = true;
+}
+const home = document.getElementById("home");
+const game = document.getElementById("game");
+const settings = document.getElementById("settings");
+const progressBar = document.querySelector(".progress-bar");
+const endScreen = document.getElementById("end-screen");
+const endScreenScore = document.getElementById("end-score");
+let previousAlbums = [];
+// CODE BELOW IS FOR TESTING. COMMENT OUT WHEN DONE.
+// newRound()
+// home.classList.add("none")
+// game.classList.remove("none")
+// progressBar.classList.remove("none")
+// localStorage.setItem(ls.genre_no, "2")
+// localStorage.setItem(ls.max_rounds, "1")
+// localStorage.setItem(ls.pop_min, "0")
+// localStorage.setItem(ls.pop_max, "100")
+// localStorage.setItem(ls.hide_info, "false")
+// localStorage.setItem(ls.allow_explicit, "false")
+// CODE ABOVE IS FOR TESTING. COMMENT OUT WHEN DONE.
+let score = 0;
+let currentRound = 0;
+let maxRound = Number(localStorage.getItem(ls.max_rounds));
+const scoreEl = document.getElementById("score");
+const btn = {
+    play: document.getElementById("play-btn"),
+    settings: document.getElementById("settings-btn")
+};
+btn.play.onclick = () => {
+    newRound();
+    home.classList.add("fade-out");
+    setTimeout(() => {
+        home.classList.remove("fade-out");
+        home.classList.add("none");
+        game.classList.add("fade-in");
+        game.classList.remove("none");
+        progressBar.classList.remove("none");
+        progressBar.classList.add("move-in");
+    }, 1000);
+};
+function newRound() {
+    const genreCount = Number(localStorage.getItem(ls.genre_no));
+    const dataset = [...data].filter(obj => obj["genres"].length === genreCount);
+    const progress = document.getElementById("progress");
+    const guesses = document.querySelector(".guesses");
+    const genres = document.querySelector(".correct-genres");
+    guesses.innerHTML = "";
+    genres.innerHTML = "";
+    genres.classList.remove("expand");
+    genres.classList.add("none");
+    for (let i = 0; i < Array(genreCount).length; i++) {
+        guesses.insertAdjacentHTML("beforeend", `<input id="genre-guess-${i + 1}" />`);
+    }
+    const measurePop = 30000;
+    function choose() {
+        const album = dataset[Math.floor(Math.random() * dataset.length)];
+        if (!album ||
+            previousAlbums.includes(album) ||
+            ((album.ratings / measurePop) * 100) <= Number(localStorage.getItem(ls.pop_min)) ||
+            ((album.ratings / measurePop) * 100) >= Number(localStorage.getItem(ls.pop_max)) ||
+            localStorage.getItem(ls.allow_explicit) === "false" && album.explicit === true) {
+            return undefined;
+        }
+        else {
+            return album;
+        }
+    }
+    let randomAlbum = choose();
+    while (!randomAlbum) {
+        randomAlbum = choose();
+    }
+    previousAlbums.push(randomAlbum);
+    const game = document.getElementById("game");
+    const cover = game.querySelector("img");
+    const artist = game.querySelector(".artist");
+    const album = game.querySelector(".album");
+    const inputs = game.querySelectorAll(".guess input");
+    const guessBtn = document.getElementById("guess-btn");
+    const popularityEl = document.getElementById("popularity-fill");
+    cover.src = randomAlbum.cover;
+    artist.innerHTML = randomAlbum.artist;
+    album.innerHTML = randomAlbum.album;
+    if (randomAlbum.ratings / measurePop >= 1)
+        popularityEl.style.width = "100%";
+    else
+        popularityEl.style.width = `${(randomAlbum.ratings / measurePop) * 100}%`;
+    for (let input of inputs) {
+        input.onkeyup = (e) => {
+            if (e.key === "Enter") {
+                const id = Number(input.getAttribute("id").replace(/^genre-guess-/g, ""));
+                if (id === genreCount) {
+                    guessBtn.click();
+                }
+                else if (id < genreCount) {
+                    const next_input = document.getElementById(`genre-guess-${id + 1}`);
+                    next_input.focus();
+                }
+            }
+        };
+    }
+    guessBtn.onclick = () => {
+        let genreGuesses = [];
+        for (let x of inputs)
+            genreGuesses.push(x.value);
+        for (let i = 0; i < inputs.length; i++) {
+            const input = inputs[i];
+            input.setAttribute("disabled", "");
+            let neither = true;
+            if (typo(input.value, randomAlbum.genres) > 0.6 || randomAlbum.genres.includes(genreAliases[input.value])) {
+                score += 2;
+                neither = false;
+                console.log("Score increased by 2.");
+                genres.insertAdjacentHTML("beforeend", `<div id="correct-genre-${i + 1}" class="">${typo(input.value, randomAlbum.genres, true)}</div>`);
+            }
+            else {
+                for (let genre of randomAlbum.genres) {
+                    if (Object.keys(genreData).includes(genre) && (genreData[genre].includes(input.value) || typo(input.value, genreData[genre]) > 0.5)) {
+                        if (genreGuesses.includes(genre))
+                            continue;
+                        score += 1;
+                        neither = false;
+                        console.log("Score increased by 1.");
+                        genres.insertAdjacentHTML("beforeend", `<div id="correct-genre-${i + 1}" class="">${genre}</div>`);
+                        break;
+                    }
+                }
+            }
+            if (neither) {
+                let guessed_genres = [];
+                const GG_el = document.querySelectorAll(".correct-genres > div");
+                for (let x of GG_el)
+                    guessed_genres.push(x.innerText);
+                const dsak = [...randomAlbum.genres].filter(item => !guessed_genres.includes(item));
+                let id_i = 0;
+                for (let i = 0; i < dsak.length; i++) {
+                    id_i += 1;
+                    if (document.getElementById(`correct-genre-${id_i}`))
+                        id_i += 1;
+                    genres.insertAdjacentHTML("beforeend", `<div id="correct-genre-${id_i}" class="">${dsak[i]}</div>`);
+                }
+            }
+        }
+        genres.classList.remove("none");
+        genres.classList.add("expand");
+        if (localStorage.getItem(ls.hide_info) === "true") {
+            artistEl.classList.remove("none");
+            artistEl.classList.add("fade-in");
+            albumEl.classList.remove("none");
+            albumEl.classList.add("fade-in");
+            setTimeout(() => {
+                artistEl.classList.remove("fade-in");
+                artistEl.classList.add("none");
+                albumEl.classList.remove("fade-in");
+                albumEl.classList.add("none");
+            }, 3000);
+        }
+        // code to execute once round is over
+        setTimeout(() => {
+            game.classList.add("fade-out");
+            scoreEl.innerText = score.toString();
+            currentRound += 1;
+            progress.style.width = `${(currentRound / maxRound) * 100}%`;
+            setTimeout(() => {
+                if (currentRound < maxRound) {
+                    game.classList.remove("fade-out");
+                    game.classList.add("fade-in");
+                    newRound();
+                    setTimeout(() => {
+                        game.classList.remove("fade-in");
+                    }, 1000);
+                }
+                else {
+                    progressBar.classList.add("move-out");
+                    setTimeout(() => {
+                        progressBar.classList.remove("move-out");
+                        progressBar.classList.add("none");
+                        progress.removeAttribute("style");
+                        scoreEl.innerText = "0";
+                    }, 1000);
+                    game.classList.remove("fade-out");
+                    game.classList.add("none");
+                    endScreenScore.innerText = score.toString();
+                    endScreen.classList.remove("none");
+                    endScreen.classList.add("fade-in");
+                    setTimeout(() => {
+                        endScreen.classList.remove("fade-in");
+                        endScreen.classList.add("fade-out");
+                        setTimeout(() => {
+                            endScreen.classList.remove("fade-out");
+                            endScreen.classList.add("none");
+                            home.classList.remove("none");
+                            home.classList.add("fade-in");
+                            endScreenScore.innerText = "0";
+                            score = 0;
+                            currentRound = 0;
+                            previousAlbums = [];
+                            setTimeout(() => {
+                                home.classList.remove("fade-in");
+                            }, 1000);
+                        }, 1000);
+                    }, 2000);
+                }
+            }, 1000);
+        }, 2000);
+    };
+}
+btn.settings.onclick = () => {
+    settings.classList.remove("none");
+    settings.classList.add("zoom-in");
+    setTimeout(() => {
+        settings.classList.remove("zoom-in");
+    }, 1000);
+};
+document.getElementById("settings-close").onclick = (e) => {
+    settings.classList.add("zoom-out");
+    setTimeout(() => {
+        settings.classList.remove("zoom-out");
+        settings.classList.add("none");
+    }, 1000);
+};

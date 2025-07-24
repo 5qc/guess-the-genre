@@ -1,0 +1,88 @@
+@use "_global" as *;
+
+.popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 100;
+    transform: translate(-50%, -50%);
+    background-color: darken($bgcolor, 15%);
+    padding: 1em 2em;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 99%;
+
+    &#settings {
+        max-width: 450px;
+
+        .album-pop-wrapper {
+            display: flex;
+            gap: .2em;
+
+            > input {
+                width: 50%;
+                text-align: center;
+            }
+        }
+    }
+
+    .close {
+        font-weight: bold;
+        position: absolute;
+        top: .5em;
+        right: 1em;
+        font-size: 1.25em;
+        cursor: pointer;
+    }
+
+    .title {
+        font-size: 2em;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: .3em;
+    }
+    .content {
+        font-size: 20px;
+        
+        select, option, input {
+            font-size: 20px;
+
+            &:focus {
+                outline: none;
+            }
+        }
+
+        select {
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid black;
+
+            option {
+                border: none;
+                background-color: darken($bgcolor, 10%);
+            }
+        }
+
+        input {
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid black;
+        }
+
+        > div {
+            display: flex;
+
+            > * {
+                width: 50%;
+            }
+        }
+    }
+}
+
+#settings {
+    .content {
+        display: flex;
+        gap: .25em;
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="apple-touch-icon" sizes="180x180" href="./src/assets/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="./src/assets/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="./src/assets/favicon-16x16.png" />
+        <link rel="manifest" href="./site.webmanifest" />
+
+        <title>guess the genre game</title>
+
+        <link rel="stylesheet" href="./dist/style.css" />
+        <script src="./dist/script.js" defer></script>
+    </head>
+    <body>
+        <div id="home" class="no-select">
+            <div class="title">guess the genre game</div>
+            <div class="buttons">
+                <button id="play-btn">play</button>
+                <button id="settings-btn">settings</button>
+            </div>
+        </div>
+        
+        <div class="progress-bar none">
+            <div class="fill-bar" id="progress"></div>
+            <div class="score">score: <div id="score">0</div></div>
+        </div>
+        <div id="game" class="none">
+            <div class="game-wrapper">
+                <div class="cover">
+                    <img />
+                    <div class="artist"></div>
+                    <div class="album"></div>
+                    <div class="popularity">
+                        Popularity: <div class="popularity-bar"><div id="popularity-fill"></div></div>
+                    </div>
+                </div>
+                <div class="guess">
+                    <div class="guess-wrapper">
+                        <div class="correct-genres none"></div>
+                        <div class="guesses"></div>
+                    </div>
+                    <div class="button-wrapper">
+                        <button id="guess-btn">guess</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="end-screen" class="none">
+            <div class="text">congrats!</div>
+            <div class="score">score: <div id="end-score">0</div></div>
+        </div>
+
+        <div class="popup none" id="settings">
+            <div id="settings-close" class="close">x</div>
+            <div class="title">settings</div>
+            <div class="content">
+                <div>
+                    <label for="no-of-genres">no. of genres to guess</label>
+                    <select id="no-of-genres">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="no-of-rounds">no. of rounds</label>
+                    <input id="no-of-rounds" min="1" max="10" />
+                </div>
+                <div>
+                    <label for="popularity-of-albums">popularity of albums (0-100)</label>
+                    <div class="album-pop-wrapper">
+                        <input id="popularity-of-albums_min" min="0" max="100"  />
+                        <input id="popularity-of-albums_max" min="0" max="100" />
+                    </div>
+                </div>
+                <div>
+                    <label for="hide-info">hide album artist and name</label>
+                    <div>
+                        <input type="checkbox" id="hide-info" />
+                    </div>
+                </div>
+                <div>
+                    <label for="allow-explicit">allow explicit covers</label>
+                    <div>
+                        <input type="checkbox" id="allow-explicit" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="notice" style="display: none;"></div>
+    </body>
+</html>

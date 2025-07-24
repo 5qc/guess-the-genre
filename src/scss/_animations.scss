@@ -1,0 +1,83 @@
+.move-in {
+    animation: 1s move-in ease-in-out forwards;
+}
+@keyframes move-in {
+    from {
+        transform: translateY(-200%);
+    }
+    to {
+        transform: translateY(0%);
+    }
+}
+
+.move-out {
+    animation: 1s move-out ease-in-out forwards;
+}
+@keyframes move-out {
+    from {
+        transform: translateY(0%);
+    }
+    to {
+        transform: translateY(-200%);
+    }
+}
+
+.expand {
+    animation: 1s expand ease-in-out forwards;
+}
+@keyframes expand {
+    from {
+        width: 0%;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.fade-in {
+    animation: 1s fade-in linear forwards;
+}
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.fade-out {
+    animation: 1s fade-out linear forwards;
+}
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.zoom-in {
+    animation: 1s zoom-in ease-in-out forwards;
+}
+@keyframes zoom-in {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.zoom-out {
+    animation: 1s zoom-out ease-in-out forwards;
+}
+@keyframes zoom-out {
+    from {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        transform: translate(-50%, -50%) scale(0);
+    }
+}

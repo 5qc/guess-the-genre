@@ -1,0 +1,23 @@
+#home {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    flex-direction: column;
+
+    .title {
+        font-size: 2.5em;
+        margin-bottom: .25em;
+        font-weight: bold;
+    }
+    
+    .buttons {
+        display: flex;
+        flex-direction: column;
+        gap: .5em;
+    }
+
+    button {
+        font-size: 1.5em;
+    }
+}

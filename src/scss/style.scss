@@ -1,0 +1,50 @@
+@use "_global" as *;
+
+@use "animations";
+@use "end";
+@use "fonts";
+@use "game";
+@use "home";
+@use "popup";
+@use "progress";
+
+html, body {
+    height: 100%;
+}
+body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-weight: 400;
+    margin: 0;
+    background-color: $bgcolor;
+    color: #000;
+}
+
+.none {
+    display: none !important;
+}
+
+#notice {
+    position: fixed;
+    top: .5em;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgb(255, 105, 97, 0.5);
+    padding: .5em 1.2em;
+    border-radius: 10px;
+    font-size: 1.3em;
+    @extend .no-select;
+}
+
+button {
+    background-color: darken($bgcolor, 10%);
+    padding: .5em 1.5em;
+    border: none;
+    border-radius: 15px;
+    transition: .25s background-color;
+
+    &:hover {
+        background-color: darken($bgcolor, 7%);
+        cursor: pointer;
+        transition: .25s background-color;
+    }
+}
