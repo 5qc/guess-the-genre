@@ -1180,18 +1180,6 @@ const progressBar = document.querySelector(".progress-bar");
 const endScreen = document.getElementById("end-screen");
 const endScreenScore = document.getElementById("end-score");
 let previousAlbums = [];
-// CODE BELOW IS FOR TESTING. COMMENT OUT WHEN DONE.
-// newRound()
-// home.classList.add("none")
-// game.classList.remove("none")
-// progressBar.classList.remove("none")
-// localStorage.setItem(ls.genre_no, "2")
-// localStorage.setItem(ls.max_rounds, "1")
-// localStorage.setItem(ls.pop_min, "99")
-// localStorage.setItem(ls.pop_max, "100")
-// localStorage.setItem(ls.hide_info, "false")
-// localStorage.setItem(ls.allow_explicit, "false")
-// CODE ABOVE IS FOR TESTING. COMMENT OUT WHEN DONE.
 let score = 0;
 let currentRound = 0;
 let maxRound = Number(localStorage.getItem(ls.max_rounds));
