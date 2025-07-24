@@ -1068,7 +1068,9 @@ const genreData = {
     "harsh noise wall": ["noise", "harsh noise"],
     "vapornoise": ["vaporwave"],
     "abstract hip hop": ["hip hop", "rap"],
-    "pop rap": ["rap", "hip hop"]
+    "pop rap": ["rap", "hip hop"],
+    "trap": ["hip hop", "rap"],
+    "hip hop": ["rap"]
 };
 // for logging how many albums are in the database.
 let DATAFORCONSOLE = {};
@@ -1179,16 +1181,16 @@ const endScreen = document.getElementById("end-screen");
 const endScreenScore = document.getElementById("end-score");
 let previousAlbums = [];
 // CODE BELOW IS FOR TESTING. COMMENT OUT WHEN DONE.
-// newRound()
-// home.classList.add("none")
-// game.classList.remove("none")
-// progressBar.classList.remove("none")
-// localStorage.setItem(ls.genre_no, "2")
-// localStorage.setItem(ls.max_rounds, "1")
-// localStorage.setItem(ls.pop_min, "0")
-// localStorage.setItem(ls.pop_max, "100")
-// localStorage.setItem(ls.hide_info, "false")
-// localStorage.setItem(ls.allow_explicit, "false")
+newRound();
+home.classList.add("none");
+game.classList.remove("none");
+progressBar.classList.remove("none");
+localStorage.setItem(ls.genre_no, "2");
+localStorage.setItem(ls.max_rounds, "1");
+localStorage.setItem(ls.pop_min, "0");
+localStorage.setItem(ls.pop_max, "100");
+localStorage.setItem(ls.hide_info, "false");
+localStorage.setItem(ls.allow_explicit, "false");
 // CODE ABOVE IS FOR TESTING. COMMENT OUT WHEN DONE.
 let score = 0;
 let currentRound = 0;
@@ -1272,8 +1274,12 @@ function newRound() {
     }
     guessBtn.onclick = () => {
         let genreGuesses = [];
-        for (let x of inputs)
+        for (let x of inputs) {
+            if (x.value === "")
+                return;
             genreGuesses.push(x.value);
+        }
+        guessBtn.setAttribute("disabled", "");
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];
             input.setAttribute("disabled", "");
@@ -1336,6 +1342,7 @@ function newRound() {
                 if (currentRound < maxRound) {
                     game.classList.remove("fade-out");
                     game.classList.add("fade-in");
+                    guessBtn.removeAttribute("disabled");
                     newRound();
                     setTimeout(() => {
                         game.classList.remove("fade-in");

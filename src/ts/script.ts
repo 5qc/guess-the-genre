@@ -7,16 +7,16 @@ const endScreenScore = <HTMLDivElement>document.getElementById("end-score")
 let previousAlbums = []
 
 // CODE BELOW IS FOR TESTING. COMMENT OUT WHEN DONE.
-// newRound()
-// home.classList.add("none")
-// game.classList.remove("none")
-// progressBar.classList.remove("none")
-// localStorage.setItem(ls.genre_no, "2")
-// localStorage.setItem(ls.max_rounds, "1")
-// localStorage.setItem(ls.pop_min, "0")
-// localStorage.setItem(ls.pop_max, "100")
-// localStorage.setItem(ls.hide_info, "false")
-// localStorage.setItem(ls.allow_explicit, "false")
+newRound()
+home.classList.add("none")
+game.classList.remove("none")
+progressBar.classList.remove("none")
+localStorage.setItem(ls.genre_no, "2")
+localStorage.setItem(ls.max_rounds, "1")
+localStorage.setItem(ls.pop_min, "0")
+localStorage.setItem(ls.pop_max, "100")
+localStorage.setItem(ls.hide_info, "false")
+localStorage.setItem(ls.allow_explicit, "false")
 // CODE ABOVE IS FOR TESTING. COMMENT OUT WHEN DONE.
 
 let score = 0
@@ -112,7 +112,11 @@ function newRound() {
 
     guessBtn.onclick = () => {
         let genreGuesses = []
-        for (let x of inputs) genreGuesses.push(x.value)
+        for (let x of inputs) {
+            if (x.value === "") return
+            genreGuesses.push(x.value)
+        }
+        guessBtn.setAttribute("disabled", "")
 
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i]
@@ -187,6 +191,7 @@ function newRound() {
                 if (currentRound < maxRound) {
                     game.classList.remove("fade-out")
                     game.classList.add("fade-in")
+                    guessBtn.removeAttribute("disabled")
                     newRound()
                     setTimeout(() => {
                         game.classList.remove("fade-in")
