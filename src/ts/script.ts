@@ -49,6 +49,8 @@ function newRound() {
     const measurePop = 30000
     function choose() {
         const album = dataset[Math.floor(Math.random() * dataset.length)]
+        if (Number(localStorage.getItem(ls.pop_max)) === 100 && ((album.ratings / measurePop) * 100) >= 100) return album
+
         if (
             !album ||
             previousAlbums.includes(album) ||
