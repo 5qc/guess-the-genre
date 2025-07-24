@@ -32,13 +32,15 @@ const genreData: GenreData = {
 	"technical thrash metal": ["thrash metal", "technical metal", "metal"],
 	"electronic dance music": ["edm"],
 	"atmospheric sludge metal": ["atmospheric metal", "sludge metal", "metal"],
-	"hardcore hip hop": ["horrorcore"],
-	"horrorcore": ["hardcore hip hop"],
+	"hardcore hip hop": ["horrorcore", "hip hop", "rap"],
+	"horrorcore": ["hardcore hip hop", "hip hop", "rap"],
 	"atmospheric black metal": ["black metal", "metal"],
     "harsh noise": ["noise", "harsh noise wall"],
     "noise": ["harsh noise", "harsh noise wall"],
     "harsh noise wall": ["noise", "harsh noise"],
     "vapornoise": ["vaporwave"],
+	"abstract hip hop": ["hip hop", "rap"],
+	"pop rap": ["rap", "hip hop"]
 }
 
 // for logging how many albums are in the database.
