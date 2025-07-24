@@ -40,7 +40,9 @@ const genreData: GenreData = {
     "harsh noise wall": ["noise", "harsh noise"],
     "vapornoise": ["vaporwave"],
 	"abstract hip hop": ["hip hop", "rap"],
-	"pop rap": ["rap", "hip hop"]
+	"pop rap": ["rap", "hip hop"],
+	"trap": ["hip hop", "rap"],
+	"hip hop": ["rap"]
 }
 
 // for logging how many albums are in the database.
