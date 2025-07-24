@@ -1187,7 +1187,7 @@ game.classList.remove("none");
 progressBar.classList.remove("none");
 localStorage.setItem(ls.genre_no, "2");
 localStorage.setItem(ls.max_rounds, "1");
-localStorage.setItem(ls.pop_min, "0");
+localStorage.setItem(ls.pop_min, "99");
 localStorage.setItem(ls.pop_max, "100");
 localStorage.setItem(ls.hide_info, "false");
 localStorage.setItem(ls.allow_explicit, "false");
@@ -1279,6 +1279,8 @@ function newRound() {
                 return;
             genreGuesses.push(x.value);
         }
+        if ([...new Set(genreGuesses)].length < inputs.length)
+            return;
         guessBtn.setAttribute("disabled", "");
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];
