@@ -51,6 +51,10 @@ function newRound() {
         const album = dataset[Math.floor(Math.random() * dataset.length)]
         if (Number(localStorage.getItem(ls.pop_max)) === 100 && ((album.ratings / measurePop) * 100) >= 100) return album
 
+        for (let x of previousAlbums) {
+            if (x.artist === album.artist) return undefined
+        }
+
         if (
             !album ||
             previousAlbums.includes(album) ||
@@ -113,7 +117,10 @@ function newRound() {
             input.setAttribute("disabled", "")
 
             let neither = true
-            if (typo(input.value, randomAlbum.genres) > 0.6 || randomAlbum.genres.includes(genreAliases[input.value])) {
+            if (
+                typo(input.value, randomAlbum.genres) > 0.6 ||
+                typo(input.value, [...Object.keys(genreAliases)]) > 0.6 && randomAlbum.genres.includes(genreAliases[typo(input.value, [...Object.keys(genreAliases)], true)])
+            ) {
                 score += 2
                 neither = false
                 console.log("Score increased by 2.")
