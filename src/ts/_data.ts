@@ -1,11 +1,17 @@
 const genreAliases: AliasData = {
     "edm": "electronic dance music",
-    "hnw": "harsh noise wall"
+    "hnw": "harsh noise wall",
+	"rap": "hip hop",
+	"abstract rap": "abstract hip hop",
+	"hn": "harsh noise",
+	"experimental pop": "art pop",
+	"electronica": "electronic"
 }
 
 const genreData: GenreData = {
-	"alternative metal": ["metal"],
+	"alternative metal": ["metal", "alternative"],
 	"neo-soul": ["soul"],
+	"smooth soul": ["smooth soul"],
 	"shoegaze": ["alternative rock", "rock"],
 	"emo": ["rock", "punk"],
 	"screamo": ["emo", "post-hardcore", "hardcore", "hardcore punk"],
@@ -18,7 +24,7 @@ const genreData: GenreData = {
 	"post-hardcore": ["hardcore"],
 	"post-metal": ["metal"],
 	"post-rock": ["rock"],
-	"art pop": ["experimental pop", "pop"],
+	"art pop": ["pop"],
 	"black metal": ["metal"],
 	"thrash metal": ["metal"],
 	"dissonant black metal": ["black metal", "metal"],
@@ -42,7 +48,12 @@ const genreData: GenreData = {
 	"abstract hip hop": ["hip hop", "rap"],
 	"pop rap": ["rap", "hip hop"],
 	"trap": ["hip hop", "rap"],
-	"hip hop": ["rap"]
+	"french house": ["house"],
+	"progressive electronic": ["electronic"],
+	"electronic": ["progressive electronic"],
+	"french electro": ["electronic", "progressive electronic"],
+	"tech house": ["house"],
+	"post-industrial": ["industrial"]
 }
 
 // for logging how many albums are in the database.
